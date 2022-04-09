@@ -1,2 +1,2 @@
 # Born2BeRootTester
-42 Project tester for Born2BeRoot :)
+Tester for Born2BeRoot :)
