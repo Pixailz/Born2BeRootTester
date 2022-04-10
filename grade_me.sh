@@ -166,6 +166,152 @@ function check_mandatory() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> make the report according to result
+function echo_deep_section() {
+	printf "${green}${1}${reset}:\n" >> deepthought
+}
+
+function echo_deep() {
+	printf "\t${red}ERROR${reset}: ${1}\n" >> deepthought
+}
+
+function report_lvm_crypted() {
+	echo_deep_section "LVM_CRYPTED"
+	if [ ${lvm_1} == 0 ]; then
+		echo_deep "your virtual machine don't have at least 2 LVM partition"
+	fi
+	if [ ${lvm_2} == 0 ]; then
+		echo_deep "your virtual machine don't have at least 2 LVM partition"
+	fi
+}
+
+function report_ssh() {
+	echo_deep_section "SSH_SEVER"
+	if [ ${ssh_1} == 0 ]; then
+		echo_deep "openssh-server is not installed"
+	fi
+	if [ ${ssh_2} == 0 ]; then
+		echo_deep "wrong port, ${ssh_port} instead of 4242"
+	fi
+	if [ ${ssh_3} == 0 ]; then
+		echo_deep "you don't prevent root to login from ssh"
+	fi
+}
+
+function report_ufw() {
+	echo_deep_section "FIREWALL"
+	if [ ${ufw_1} == 0 ]; then
+		echo_deep "ufw is not installed"
+	fi
+	if [ ${ufw_2} == 0 ]; then
+		echo_deep "ufw is not enabled"
+	fi
+	if [ ${ufw_3} == 0 ]; then
+		echo_deep "ufw don't have a rule for 4242"
+	fi
+}
+
+function report_hostname() {
+	echo_deep_section "HOSTNAME"
+	if [ ${hostname_1} == 0 ]; then
+		echo_deep "the command hostname ($(hostname)) don't return ${LOGIN}42"
+	fi
+	if [ ${hostname_2} == 0 ]; then
+		echo_deep "your hosts file is not configured properly"
+	fi
+}
+
+function report_strong_password() {
+	echo_deep_section "STRONG_PASSWORD"
+	if [ ${pwquality_1} == 0 ]; then
+		echo_deep "the 'libpam-pwquality' package is not installed"
+	fi
+	if [ ${pwquality_2} == 0 ]; then
+		echo_deep "wrong password expiration"
+	fi
+	if [ ${pwquality_3} == 0 ]; then
+		echo_deep "wrong minimum day with a password"
+	fi
+	if [ ${pwquality_4} == 0 ]; then
+		echo_deep "wrong day before warning"
+	fi
+	if [ ${pwquality_5} == 0 ]; then
+		echo_deep "wrong minimum length for a password"
+	fi
+	if [ ${pwquality_6} == 0 ]; then
+		echo_deep "wrong minimum upper character for a password"
+	fi
+	if [ ${pwquality_7} == 0 ]; then
+		echo_deep "wrong minimum lower character for a password"
+	fi
+	if [ ${pwquality_8} == 0 ]; then
+		echo_deep "wrong minimum digit character for a password"
+	fi
+	if [ ${pwquality_9} == 0 ]; then
+		echo_deep "wrong max consecutive character in a password"
+	fi
+	if [ ${pwquality_10} == 0 ]; then
+		echo_deep "password can't have the username in it"
+	fi
+	if [ ${pwquality_11} == 0 ]; then
+		echo_deep "password can't have more than 7 that is in the old one"
+	fi
+	if [ ${pwquality_12} == 0 ]; then
+		echo_deep "password policy must be applied to root"
+	fi
+}
+
+function report_strict_sudo() {
+	echo_deep_section "STRICT_SUDO"
+	if [ ${sudo_1} == 0 ]; then
+		echo_deep "wrong sudo max tries"
+	fi
+	if [ ${sudo_2} == 0 ]; then
+		echo_deep "you don't have set message or is empty"
+	fi
+	if [ ${sudo_3} == 0 ]; then
+		echo_deep "you don't store input sudo log"
+	fi
+	if [ ${sudo_4} == 0 ]; then
+		echo_deep "you don't store output sudo log"
+	fi
+	if [ ${sudo_5} == 0 ]; then
+		echo_deep "you don't store sudo log in the correct folder"
+	fi
+	if [ ${sudo_6} == 0 ]; then
+		echo_deep "you don't activate TTY"
+	fi
+	if [ ${sudo_7} == 0 ]; then
+		echo_deep "you don't have set the secure_path"
+	fi
+}
+
+function report_username() {
+	echo_deep_section "STRICT_SUDO"
+	if [ ${username_1} == 0 ]; then
+		echo_deep "your user don't exist or don't have the correct name"
+	fi
+	if [ ${username_2} == 0 ]; then
+		echo_deep "your user don't belong to sudo group"
+	fi
+	if [ ${username_3} == 0 ]; then
+		echo_deep "your user don't belong to user42 group"
+	fi
+}
+
+function make_report() {
+	tabs 4
+	[ -f deepthought ] && rm deepthought
+	report_lvm_crypted
+	report_ssh
+	report_ufw
+	report_hostname
+	report_strong_password
+	report_strict_sudo
+	report_username
+}
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> print result
 
 function print_part() {
@@ -288,6 +434,7 @@ function main() {
 	basic_config
 	check
 	print_result
+	make_report
 }
 
 main
