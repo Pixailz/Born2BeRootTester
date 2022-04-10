@@ -65,11 +65,11 @@ function check_lvm() {
 }
 
 function check_ssh() {
-	is_installed=$(sudo systemctl list-units | grep -o ssh)
-	ssh_port=$(sed -nE 's|^Port\s*(4242)$|\1|p' /etc/ssh/sshd_config)
+	is_installed=$(sudo systemctl list-units 2>/dev/null | grep -o ssh)
+	ssh_port=$(sed -nE 's|^Port\s*(.*)$|\1|p' /etc/ssh/sshd_config)
 	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no)$|\1|p' /etc/ssh/sshd_config)
 	[ ${is_installed} ] && ssh_1=1 || ssh_1=0
-	[ ${ssh_port} ] && ssh_2=1 || ssh_2=0
+	[ "${ssh_port}" == 4242 ] && ssh_2=1 || ssh_2=0
 	[ ${prohibit_root} ] && ssh_3=1 || ssh_3=0
 }
 
@@ -90,12 +90,12 @@ function check_ufw() {
 function check_hostname() {
 	hostname="${LOGIN}42"
 	hosts=$(sed -nE 's|127.0.0.1\t([a-z0-9\-]{1,63})|\1|p' /etc/hosts)
-	[ ${hostname} == $(hostname) ] && hostname_1=1 || hostname_1=0
-	if [ ${hosts} == "localhost" ]; then
+	[ "${hostname}" == $(hostname) ] && hostname_1=1 || hostname_1=0
+	if [ "${hosts}" == "localhost" ]; then
 		hosts2=$(sed -nE 's|127.0.1.1\t([a-z0-9\-]{1,63})|\1|p' /etc/hosts)
-		[ ${hosts2} == ${hostname} ] && hostname_2=1 || hostname_2=0
+		[ "${hosts2}" == ${hostname} ] && hostname_2=1 || hostname_2=0
 	else
-		[ ${hosts} == ${hostname} ] && hostname_2=1 || hostname_2=0
+		[ "${hosts}" == ${hostname} ] && hostname_2=1 || hostname_2=0
 	fi
 }
 
@@ -145,10 +145,10 @@ function check_strict_sudo() {
 	[ "${passwd_secure_path}" ] && sudo_7=1 || sudo_7=0
 }
 function check_username() {
-	username=$(logname)
-	have_sudo=$(id ${username} | grep -o sudo)
-	have_user42=$(id ${username} | grep -o user42)
-	[ ${username} == ${LOGIN} ] && username_1=1 || username_1=0
+	username=$(cat /etc/passwd | grep -o ${LOGIN} | uniq)
+	have_sudo=$(id ${LOGIN} 2>/dev/null | grep -o sudo)
+	have_user42=$(id ${LOGIN} 2>/dev/null | grep -o user42)
+	[ "${username}" == ${LOGIN} ] && username_1=1 || username_1=0
 	[ "${have_sudo}" ] && username_2=1 || username_2=0
 	[ "${have_user42}" ] && username_3=1 || username_3=0
 }
@@ -339,7 +339,7 @@ function print_lvm_crypted() {
 
 function print_ssh() {
 	printf "ssh_server:\t"
-	[ ${ssh_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ ${ssh_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
