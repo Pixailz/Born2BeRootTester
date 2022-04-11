@@ -55,6 +55,39 @@ function p_info() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> Monitoring check
+
+function check_cron_user() {
+	echo
+}
+
+function check_crontab_user() {
+	# /var/spool/cron/crontabs/${LOGIN}
+	cron_user=$(crontab -l -u ${LOGIN})
+	echo $cron_user
+	grep -o ""
+}
+
+function check_crontab_root() {
+	# /var/spool/cron/crontabs/root
+	cron_root=$(sudo crontab -l -u root)
+	echo $cron_root
+}
+
+function check_crontab() {
+	check_crontab_user
+	[ $? == 1 ] && check_cron_user
+ 	check_crontab_root
+}
+
+function check_monitoring() {
+	check_crontab
+}
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> basic check
 
 function check_lvm() {
@@ -425,6 +458,7 @@ function basic_config() {
 
 function check() {
 	check_mandatory
+	check_monitoring
 }
 
 function main() {
@@ -437,5 +471,7 @@ function main() {
 	make_report
 }
 
-main
+#main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+check_monitoring
