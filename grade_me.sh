@@ -75,7 +75,7 @@ function check_cron_schedule() {
 
 function check_have_cron() {
 	# /var/spool/cron/crontabs/${LOGIN}
-	crontab=$(sudo crontab -l | grep -v '^#')
+	crontab=$(sudo crontab -l 2>/dev/null | grep -v '^#')
 	is_monitorings=$(echo "${crontab}" | cut -d' ' -f6-)
 	is_monitorings=$(echo "${is_monitorings}" | grep -E '.*monitoring.*')
 	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
@@ -106,18 +106,18 @@ function check_lvm() {
 
 function check_ssh() {
 	is_installed=$(sudo systemctl list-units 2>/dev/null | grep -o ssh)
-	ssh_port=$(sed -nE 's|^Port\s*(.*)$|\1|p' /etc/ssh/sshd_config)
-	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no)$|\1|p' /etc/ssh/sshd_config)
+	ssh_port=$(sed -nE 's|^Port\s*(.*)$|\1|p' /etc/ssh/sshd_config 2>/dev/null)
+	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no)$|\1|p' /etc/ssh/sshd_config 2>/dev/null)
 	[ ${is_installed} ] && ssh_1=1 || ssh_1=0
 	[ "${ssh_port}" == 4242 ] && ssh_2=1 || ssh_2=0
 	[ ${prohibit_root} ] && ssh_3=1 || ssh_3=0
 }
 
 function check_ufw() {
-	is_installed=$(sudo which ufw)
-	is_enabled=$(sudo ufw status | sed -nE 's|Status: (active)|\1|p')
-	v4_rule=$(sudo ufw status | sed -nE 's|^4242/tcp\s*(ALLOW)|\1|p')
-	v6_rule=$(sudo ufw status | sed -nE 's|^4242/tcp \(v6\)\s*(ALLOW).*|\1|p')
+	is_installed=$(sudo which ufw 2>/dev/null)
+	is_enabled=$(sudo ufw status  2>/dev/null | sed -nE 's|Status: (active)|\1|p')
+	v4_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242/tcp\s*(ALLOW)|\1|p')
+	v6_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242/tcp \(v6\)\s*(ALLOW).*|\1|p')
 	[ ${is_installed} ] && ufw_1=1 || ufw_1=0
 	[ ${is_enabled} ] && ufw_2=1 || ufw_2=0
 	if [ ! "${v4_rule}" != "ALLOW" ] || [ ! "${v6_rule}" != "ALLOW" ]; then
@@ -140,18 +140,18 @@ function check_hostname() {
 }
 
 function check_strong_password() {
-	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password)
-	rule_max=$(sed -nE "s|PASS_MAX_DAYS.*(30).*|\1|p" /etc/login.defs)
-	rule_min=$(sed -nE "s|PASS_MIN_DAYS.*(2).*|\1|p" /etc/login.defs)
-	rule_warn=$(sed -nE "s|PASS_WARN_AGE.*(7).*|\1|p" /etc/login.defs)
-	rule_min_char=$(sed -nE "s|.*minlen=(10).*|\1|p" /etc/pam.d/common-password)
-	rule_upper=$(sed -nE "s|.*ucredit=(-1).*|\1|p" /etc/pam.d/common-password)
-	rule_lower=$(sed -nE "s|.*lcredit=(-1).*|\1|p" /etc/pam.d/common-password)
-	rule_digit=$(sed -nE "s|.*dcredit=(-1).*|\1|p" /etc/pam.d/common-password)
-	rule_maxrepeat=$(sed -nE "s|.*maxrepeat=(3).*|\1|p" /etc/pam.d/common-password)
-	rule_username=$(sed -nE "s|.*usercheck=([0-9]).*|\1|p" /etc/pam.d/common-password)
-	rule_diff_old=$(sed -nE "s|.*difok=(7).*|\1|p" /etc/pam.d/common-password)
-	rule_force_root=$(grep -o "enforce_for_root" /etc/pam.d/common-password)
+	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null)
+	rule_max=$(sed -nE "s|PASS_MAX_DAYS.*(30).*|\1|p" /etc/login.defs 2>/dev/null)
+	rule_min=$(sed -nE "s|PASS_MIN_DAYS.*(2).*|\1|p" /etc/login.defs 2>/dev/null)
+	rule_warn=$(sed -nE "s|PASS_WARN_AGE.*(7).*|\1|p" /etc/login.defs 2>/dev/null)
+	rule_min_char=$(sed -nE "s|.*minlen=(10).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_upper=$(sed -nE "s|.*ucredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_lower=$(sed -nE "s|.*lcredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_digit=$(sed -nE "s|.*dcredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_maxrepeat=$(sed -nE "s|.*maxrepeat=(3).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_username=$(sed -nE "s|.*usercheck=([0-9]).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_diff_old=$(sed -nE "s|.*difok=(7).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	rule_force_root=$(grep -o "enforce_for_root" /etc/pam.d/common-password 2>/dev/null)
 	[ "${is_installed}" == "pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
 	[ "${rule_max}" ] && pwquality_2=1 || pwquality_2=0
 	[ "${rule_min}" ] && pwquality_3=1 || pwquality_3=0
@@ -167,15 +167,15 @@ function check_strong_password() {
 }
 
 function check_strict_sudo() {
-	passwd_tries=$(sudo sed -nE 's|.*passwd_tries=(3).*|\1|p' /etc/sudoers)
-	passwd_message=$(sudo sed -nE 's|.*badpass_message="(.+)".*|\1|p' /etc/sudoers)
-	passwd_input=$(sudo sed -nE 's|Default.*(log_input).*|\1|p' /etc/sudoers)
-	passwd_output=$(sudo sed -nE 's|Default.*(log_output).*|\1|p' /etc/sudoers)
+	passwd_tries=$(sudo sed -nE 's|.*passwd_tries=(3).*|\1|p' /etc/sudoers 2>/dev/null)
+	passwd_message=$(sudo sed -nE 's|.*badpass_message="(.+)".*|\1|p' /etc/sudoers 2>/dev/null)
+	passwd_input=$(sudo sed -nE 's|Default.*(log_input).*|\1|p' /etc/sudoers 2>/dev/null)
+	passwd_output=$(sudo sed -nE 's|Default.*(log_output).*|\1|p' /etc/sudoers 2>/dev/null)
 	log_path="/var/log/sudo/sudo.log"
-	passwd_log=$(sudo sed -nE "s|.*logfile=\"(${log_path})\".*|\1|p" /etc/sudoers)
-	passwd_tty=$(sudo sed -nE 's|Default.*(requiretty).*|\1|p' /etc/sudoers)
+	passwd_log=$(sudo sed -nE "s|.*logfile=\"(${log_path})\".*|\1|p" /etc/sudoers 2>/dev/null)
+	passwd_tty=$(sudo sed -nE 's|Default.*(requiretty).*|\1|p' /etc/sudoers 2>/dev/null)
 	restricted_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
-	passwd_secure_path=$(sudo sed -nE "s|Default.*(secure_path).*|\1|p" /etc/sudoers)
+	passwd_secure_path=$(sudo sed -nE "s|Default.*(secure_path).*|\1|p" /etc/sudoers 2>/dev/null)
 	[ "${passwd_tries}" ] && sudo_1=1 || sudo_1=0
 	[ "${passwd_message}" ] && sudo_2=1 || sudo_2=0
 	[ "${passwd_input}" ] && sudo_3=1 || sudo_3=0
@@ -239,7 +239,7 @@ function report_lvm_crypted() {
 		echo_deep "your virtual machine don't have at least 2 LVM partition"
 	fi
 	if [ "${lvm_2}" == 0 ]; then
-		echo_deep "your virtual machine don't have at least 2 LVM partition"
+		echo_deep "your virtual machine don't uise crypted LVM"
 	fi
 }
 
@@ -578,7 +578,7 @@ function check() {
 function main() {
 	tabs 20
 	clear
-	check_root
+	#check_root
 	basic_config
 	check
 	print_result
