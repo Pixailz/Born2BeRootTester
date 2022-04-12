@@ -19,6 +19,8 @@ PROMPT_OFFSET=$(printf "%0.s " $(seq 1 ${PROMPT_OFFSET}))
 red="\x1b[38;5;196m"
 green="\x1b[38;5;82m"
 blue="\x1b[38;5;75m"
+orange="\x1b[38;5;214m"
+blink="\x1b[5m"
 
 reset="\x1b[0m"
 
@@ -57,33 +59,38 @@ function p_info() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Monitoring check
 
-function check_cron_user() {
-	echo
+function check_cron_schedule() {
+	minute=$(echo "${crontab}" | cut -d' ' -f1)
+	hour=$(echo "${crontab}" | cut -d' ' -f2)
+	day_m=$(echo "${crontab}" | cut -d' ' -f3)
+	month=$(echo "${crontab}" | cut -d' ' -f4)
+	day_w=$(echo "${crontab}" | cut -d' ' -f5)
+	cron_4=1
+	[ "${minute}" != "*/10" ] && cron_4=0
+	[ "${hour}" != "*" ] && cron_4=0
+	[ "${day_m}" != "*" ] && cron_4=0
+	[ "${month}" != "*" ] && cron_4=0
+	[ "${day_w}" != "*" ] && cron_4=0
 }
 
-function check_crontab_user() {
+function check_have_cron() {
 	# /var/spool/cron/crontabs/${LOGIN}
-	cron_user=$(crontab -l -u ${LOGIN})
-	echo $cron_user
-	grep -o ""
-}
-
-function check_crontab_root() {
-	# /var/spool/cron/crontabs/root
-	cron_root=$(sudo crontab -l -u root)
-	echo $cron_root
+	crontab=$(sudo crontab -l | grep -v '^#')
+	is_monitorings=$(echo "${crontab}" | cut -d' ' -f6-)
+	is_monitorings=$(echo "${is_monitorings}" | grep -E '.*monitoring.*')
+	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
+	[ ! -z "${is_monitorings}" ] && cron_2=1 || cron_2=0
+	[ -f "${is_monitorings}" ] && cron_3=1 || cron_3=0
 }
 
 function check_crontab() {
-	check_crontab_user
-	[ $? == 1 ] && check_cron_user
- 	check_crontab_root
+	check_have_cron
+	check_cron_schedule
 }
 
 function check_monitoring() {
 	check_crontab
 }
-
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -200,148 +207,238 @@ function check_mandatory() {
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> make the report according to result
+
 function echo_deep_section() {
+	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
+	center_off=$(( ${TITLE_LENGTH} - ${#1}))
+	center_splited=$(( ${center_off} / 2 ))
+	if [ $(( ${center_off} % 2)) == 0 ]; then
+		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
+		CR=$(printf "%0.s " $(seq 1 ${center_splited}))
+	else
+		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
+		CR=$(printf "%0.s " $(seq 1 ${center_splited}) 1)
+	fi
+	printf "${red}${UL}${vertical_offset}${UR}\n" >> deepthought
+	printf "${VE}${CL}${reset}${1}${red}${CR}${VE}\n" >> deepthought
+	printf "${LL}${vertical_offset}${LR}${reset}\n" >> deepthought
+}
+
+
+function echo_deep_part() {
 	printf "${green}${1}${reset}:\n" >> deepthought
 }
 
 function echo_deep() {
-	printf "\t${red}ERROR${reset}: ${1}\n" >> deepthought
+	printf "\t${blink}${orange}WARNING${reset}: ${1}\n" >> deepthought
 }
 
 function report_lvm_crypted() {
-	echo_deep_section "LVM_CRYPTED"
-	if [ ${lvm_1} == 0 ]; then
+	echo_deep_part "LVM_CRYPTED"
+	if [ "${lvm_1}" == 0 ]; then
 		echo_deep "your virtual machine don't have at least 2 LVM partition"
 	fi
-	if [ ${lvm_2} == 0 ]; then
+	if [ "${lvm_2}" == 0 ]; then
 		echo_deep "your virtual machine don't have at least 2 LVM partition"
 	fi
 }
 
 function report_ssh() {
-	echo_deep_section "SSH_SEVER"
-	if [ ${ssh_1} == 0 ]; then
+	echo_deep_part "SSH_SEVER"
+	if [ "${ssh_1}" == 0 ]; then
 		echo_deep "openssh-server is not installed"
 	fi
-	if [ ${ssh_2} == 0 ]; then
+	if [ "${ssh_2}" == 0 ]; then
 		echo_deep "wrong port, ${ssh_port} instead of 4242"
 	fi
-	if [ ${ssh_3} == 0 ]; then
+	if [ "${ssh_3}" == 0 ]; then
 		echo_deep "you don't prevent root to login from ssh"
 	fi
 }
 
 function report_ufw() {
-	echo_deep_section "FIREWALL"
-	if [ ${ufw_1} == 0 ]; then
+	echo_deep_part "FIREWALL"
+	if [ "${ufw_1}" == 0 ]; then
 		echo_deep "ufw is not installed"
 	fi
-	if [ ${ufw_2} == 0 ]; then
+	if [ "${ufw_2}" == 0 ]; then
 		echo_deep "ufw is not enabled"
 	fi
-	if [ ${ufw_3} == 0 ]; then
+	if [ "${ufw_3}" == 0 ]; then
 		echo_deep "ufw don't have a rule for 4242"
 	fi
 }
 
 function report_hostname() {
-	echo_deep_section "HOSTNAME"
-	if [ ${hostname_1} == 0 ]; then
+	echo_deep_part "HOSTNAME"
+	if [ "${hostname_1}" == 0 ]; then
 		echo_deep "the command hostname ($(hostname)) don't return ${LOGIN}42"
 	fi
-	if [ ${hostname_2} == 0 ]; then
+	if [ "${hostname_2}" == 0 ]; then
 		echo_deep "your hosts file is not configured properly"
 	fi
 }
 
 function report_strong_password() {
-	echo_deep_section "STRONG_PASSWORD"
-	if [ ${pwquality_1} == 0 ]; then
+	echo_deep_part "STRONG_PASSWORD"
+	if [ "${pwquality_1}" == 0 ]; then
 		echo_deep "the 'libpam-pwquality' package is not installed"
 	fi
-	if [ ${pwquality_2} == 0 ]; then
+	if [ "${pwquality_2}" == 0 ]; then
 		echo_deep "wrong password expiration"
 	fi
-	if [ ${pwquality_3} == 0 ]; then
+	if [ "${pwquality_3}" == 0 ]; then
 		echo_deep "wrong minimum day with a password"
 	fi
-	if [ ${pwquality_4} == 0 ]; then
+	if [ "${pwquality_4}" == 0 ]; then
 		echo_deep "wrong day before warning"
 	fi
-	if [ ${pwquality_5} == 0 ]; then
+	if [ "${pwquality_5}" == 0 ]; then
 		echo_deep "wrong minimum length for a password"
 	fi
-	if [ ${pwquality_6} == 0 ]; then
+	if [ "${pwquality_6}" == 0 ]; then
 		echo_deep "wrong minimum upper character for a password"
 	fi
-	if [ ${pwquality_7} == 0 ]; then
+	if [ "${pwquality_7}" == 0 ]; then
 		echo_deep "wrong minimum lower character for a password"
 	fi
-	if [ ${pwquality_8} == 0 ]; then
+	if [ "${pwquality_8}" == 0 ]; then
 		echo_deep "wrong minimum digit character for a password"
 	fi
-	if [ ${pwquality_9} == 0 ]; then
+	if [ "${pwquality_9}" == 0 ]; then
 		echo_deep "wrong max consecutive character in a password"
 	fi
-	if [ ${pwquality_10} == 0 ]; then
+	if [ "${pwquality_10}" == 0 ]; then
 		echo_deep "password can't have the username in it"
 	fi
-	if [ ${pwquality_11} == 0 ]; then
+	if [ "${pwquality_11}" == 0 ]; then
 		echo_deep "password can't have more than 7 that is in the old one"
 	fi
-	if [ ${pwquality_12} == 0 ]; then
+	if [ "${pwquality_12}" == 0 ]; then
 		echo_deep "password policy must be applied to root"
 	fi
 }
 
 function report_strict_sudo() {
-	echo_deep_section "STRICT_SUDO"
-	if [ ${sudo_1} == 0 ]; then
+	echo_deep_part "STRICT_SUDO"
+	if [ "${sudo_1}" == 0 ]; then
 		echo_deep "wrong sudo max tries"
 	fi
-	if [ ${sudo_2} == 0 ]; then
+	if [ "${sudo_2}" == 0 ]; then
 		echo_deep "you don't have set message or is empty"
 	fi
-	if [ ${sudo_3} == 0 ]; then
+	if [ "${sudo_3}" == 0 ]; then
 		echo_deep "you don't store input sudo log"
 	fi
-	if [ ${sudo_4} == 0 ]; then
+	if [ "${sudo_4}" == 0 ]; then
 		echo_deep "you don't store output sudo log"
 	fi
-	if [ ${sudo_5} == 0 ]; then
+	if [ "${sudo_5}" == 0 ]; then
 		echo_deep "you don't store sudo log in the correct folder"
 	fi
-	if [ ${sudo_6} == 0 ]; then
+	if [ "${sudo_6}" == 0 ]; then
 		echo_deep "you don't activate TTY"
 	fi
-	if [ ${sudo_7} == 0 ]; then
+	if [ "${sudo_7}" == 0 ]; then
 		echo_deep "you don't have set the secure_path"
 	fi
 }
 
 function report_username() {
-	echo_deep_section "STRICT_SUDO"
-	if [ ${username_1} == 0 ]; then
+	echo_deep_part "STRICT_SUDO"
+	if [ "${username_1}" == 0 ]; then
 		echo_deep "your user don't exist or don't have the correct name"
 	fi
-	if [ ${username_2} == 0 ]; then
+	if [ "${username_2}" == 0 ]; then
 		echo_deep "your user don't belong to sudo group"
 	fi
-	if [ ${username_3} == 0 ]; then
+	if [ "${username_3}" == 0 ]; then
 		echo_deep "your user don't belong to user42 group"
 	fi
+}
+
+function report_crontab() {
+	echo_deep_part "CRON_TAB"
+	if [ "${cron_1}" == 0 ]; then
+		echo_deep "your crontab doesn't have any jobs"
+	fi
+	if [ "${cron_2}" == 0 ]; then
+		echo_deep "your crontab doesn't execute a 'monitorings' scripts"
+	fi
+	if [ "${cron_3}" == 0 ]; then
+		echo_deep "your script in the crontab doesn't exists"
+	fi
+	if [ "${cron_4}" == 0 ]; then
+		echo_deep "your schedule is not in the correct format"
+	fi
+}
+
+function  report_check_part() {
+	[ "${lvm_1}" == 1 ] && \
+	[ "${lvm_2}" == 1 ] && lvm_success=1
+	[ "${ssh_1}" == 1 ] && \
+	[ "${ssh_2}" == 1 ] && \
+	[ "${ssh_3}" == 1 ] && ssh_success=1
+	[ "${ufw_1}" == 1 ] && \
+	[ "${ufw_2}" == 1 ] && \
+	[ "${ufw_3}" == 1 ] && ufw_success=1
+	[ "${hostname_1}" == 1 ] && \
+	[ "${hostname_2}" == 1 ] && hostname_success=1
+	[ "${pwquality_1}" == 1 ] && \
+	[ "${pwquality_2}" == 1 ] && \
+	[ "${pwquality_3}" == 1 ] && \
+	[ "${pwquality_4}" == 1 ] && \
+	[ "${pwquality_5}" == 1 ] && \
+	[ "${pwquality_6}" == 1 ] && \
+	[ "${pwquality_7}" == 1 ] && \
+	[ "${pwquality_8}" == 1 ] && \
+	[ "${pwquality_9}" == 1 ] && \
+	[ "${pwquality_10}" == 1 ] && \
+	[ "${pwquality_11}" == 1 ] && \
+	[ "${pwquality_12}" == 1 ] && pwquality_success=1
+	[ "${sudo_1}" == 1 ] && \
+	[ "${sudo_2}" == 1 ] && \
+	[ "${sudo_3}" == 1 ] && \
+	[ "${sudo_4}" == 1 ] && \
+	[ "${sudo_5}" == 1 ] && \
+	[ "${sudo_6}" == 1 ] && \
+	[ "${sudo_7}" == 1 ] && sudo_success=1
+	[ "${username_1}" == 1 ] && \
+	[ "${username_2}" == 1 ] && \
+	[ "${username_3}" == 1 ] && username_success=1
+	[ "${cron_1}" == 1 ] && \
+	[ "${cron_2}" == 1 ] && \
+	[ "${cron_3}" == 1 ] && \
+	[ "${cron_4}" == 1 ] && cron_success=1
+}
+
+function report_check_section() {
+	[ "${lvm_success}" == "1" ] && \
+	[ "${ssh_success}" == "1" ] && \
+	[ "${ufw_success}" == "1" ] && \
+	[ "${hostname_success}" == "1" ] && \
+	[ "${pwquality_success}" == "1" ] && \
+	[ "${sudo_success}" == "1" ] && \
+	[ "${username_success}" == "1" ] && mandatory_succes=1
+	[ "${cron_success}" == "1"  ] && monitoring_success=1
+
 }
 
 function make_report() {
 	tabs 4
 	[ -f deepthought ] && rm deepthought
-	report_lvm_crypted
-	report_ssh
-	report_ufw
-	report_hostname
-	report_strong_password
-	report_strict_sudo
-	report_username
+	report_check_part
+	report_check_section
+	[ "${mandatory_succes}" == "1" ] || echo_deep_section "MANDATORY"
+	[ "${lvm_success}" == "1" ] || report_lvm_crypted
+	[ "${ssh_success}" == "1" ] || report_ssh
+	[ "${ufw_success}" == "1" ] || report_ufw
+	[ "${hostname_success}" == "1" ] || report_hostname
+	[ "${pwquality_success}" == "1" ] || report_strong_password
+	[ "${sudo_success}" == "1" ] || report_strict_sudo
+	[ "${username_success}" == "1" ] || report_username
+	[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
+	[ "${cron_success}" == "1" ] || report_crontab
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -358,9 +455,9 @@ function print_part() {
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
 		CR=$(printf "%0.s " $(seq 1 ${center_splited}) 1)
 	fi
-	printf "${UL}${vertical_offset}${UR}\n"
-	printf "${VE}${CL}${1}${CR}${VE}\n"
-	printf "${LL}${vertical_offset}${LR}\n\n"
+	printf "${blue}${UL}${vertical_offset}${UR}\n"
+	printf "${VE}${CL}${reset}${1}${blue}${CR}${VE}\n"
+	printf "${LL}${vertical_offset}${LR}${reset}\n\n"
 }
 
 function print_lvm_crypted() {
@@ -441,8 +538,25 @@ function print_mandatory() {
 	print_username
 }
 
+function print_cron() {
+	printf "Crontab Setting:\t"
+	[ "${cron_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${cron_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${cron_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${cron_4}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+}
+
+function print_monitoring() {
+	print_part "MONITORING"
+	print_cron
+
+}
+
 function print_result() {
 	print_mandatory
+	printf "\n"
+	print_monitoring
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -471,7 +585,5 @@ function main() {
 	make_report
 }
 
-#main
+main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-
-check_monitoring
