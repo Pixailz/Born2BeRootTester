@@ -41,7 +41,8 @@ LR="\xe2\x95\x9d"
 
 function check_root() {
 	if [ ${EUID} != 0 ]; then
-		p_error "Please run as root."
+		sudo ./grade_me.sh
+		exit
 	fi
 }
 
@@ -58,6 +59,11 @@ function p_info() {
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Monitoring check
+
+function check_monitoring_sh() {
+	monitoring_path=$(find / -name 'monitoring.sh' 2>/dev/null)
+	echo "TODO"
+}
 
 function check_cron_schedule() {
 	minute=$(echo "${crontab}" | cut -d' ' -f1)
@@ -76,11 +82,11 @@ function check_cron_schedule() {
 function check_have_cron() {
 	# /var/spool/cron/crontabs/${LOGIN}
 	crontab=$(sudo crontab -l 2>/dev/null | grep -v '^#')
-	is_monitorings=$(echo "${crontab}" | cut -d' ' -f6-)
-	is_monitorings=$(echo "${is_monitorings}" | grep -E '.*monitoring.*')
+	is_monitoring=$(echo "${crontab}" | cut -d' ' -f6-)
+	is_monitoring=$(echo "${is_monitoring}" | grep -E '.*monitoring.*')
 	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
-	[ ! -z "${is_monitorings}" ] && cron_2=1 || cron_2=0
-	[ -f "${is_monitorings}" ] && cron_3=1 || cron_3=0
+	[ ! -z "${is_monitoring}" ] && cron_2=1 || cron_2=0
+	[ -f "${is_monitoring}" ] && cron_3=1 || cron_3=0
 }
 
 function check_crontab() {
@@ -90,6 +96,7 @@ function check_crontab() {
 
 function check_monitoring() {
 	check_crontab
+	check_monitoring
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -363,7 +370,7 @@ function report_crontab() {
 		echo_deep "your crontab doesn't have any jobs"
 	fi
 	if [ "${cron_2}" == 0 ]; then
-		echo_deep "your crontab doesn't execute a 'monitorings' scripts"
+		echo_deep "your crontab doesn't execute a 'monitoring' scripts"
 	fi
 	if [ "${cron_3}" == 0 ]; then
 		echo_deep "your script in the crontab doesn't exists"
@@ -578,12 +585,53 @@ function check() {
 function main() {
 	tabs 20
 	clear
-	#check_root
+	check_root
 	basic_config
 	check
 	print_result
 	make_report
 }
 
-main
+#main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#check_monitoring_sh
+# how to support float, more elegant way on opinions is the dc one
+# troncate with 2 digit after comma
+#n1=1.33333
+#echo "2k ${n1} 1 / p" | dc
+#>1.33
+# addition
+#echo "11.5 + p" | dc
+# ...
+#echo "11.5 - p" | dc
+# https://www.geeksforgeeks.org/dc-command-in-linux-with-examples/
+export THRESHOLD=0.5
+
+checked=0
+n1=11
+n2=10.5
+
+n1_unit=$(echo ${n1%.*})
+n1_deci=$(echo ${n1#*.})
+n2_unit=$(echo ${n2%.*})
+n2_deci=$(echo ${n2#*.})
+
+if [ ${n1_unit} -gt ${n2_unit} ]; then
+	echo "n1 is greater than n2"
+elif [ ${n1_unit} -lt ${n2_unit} ]; then
+	echo "n2 is greater than n1"
+else
+	if [ ${n1_deci} -gt ${n2_deci} ]; then
+		if [ $() ] ; then
+
+		else
+
+		fi
+		echo "n1 is greater than n2"
+	elif [ ${n1_deci} -lt ${n2_deci} ]; then
+		echo "n2 is greater than n1"
+	else
+		echo "n2 is equal to n1"
+	fi
+fi
