@@ -42,12 +42,7 @@ HEART="\xe2\x99\xa5"
 
 function check_root() {
 	if [ ${EUID} != 0 ]; then
-<<<<<<< HEAD
 		p_error "Run as root."
-=======
-		sudo ./grade_me.sh
-		exit
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 	fi
 }
 
@@ -65,7 +60,6 @@ function p_info() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Monitoring check
 
-<<<<<<< HEAD
 function check_monitoring_prepare_sh() {
 	[ -d tmp ] && rm -rf tmp
 	monitoring_path=$(find / -name 'monitoring.sh' 2>/dev/null)
@@ -74,11 +68,6 @@ function check_monitoring_prepare_sh() {
 	sed -i "s|wall|echo|" ./tmp/monitoring.sh
 	# append some output, at the end of the script
 	sed -i 's|#Sudo:.*|\0 > ./tmp/output_user|' ./tmp/monitoring.sh
-=======
-function check_monitoring_sh() {
-	monitoring_path=$(find / -name 'monitoring.sh' 2>/dev/null)
-	echo "TODO"
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 }
 
 function check_cron_schedule() {
@@ -157,14 +146,10 @@ function check_monitoring_compare() {
 function check_monitoring() {
 	# TODO add comparison with THRESHOLD, for accuracy at about 0.5
 	check_crontab
-<<<<<<< HEAD
 	check_monitoring_prepare_sh
 	check_monitoring_test_sh
 	check_monitoring_compare
 	[ -d ./tmp ] && rm -rf ./tmp
-=======
-	check_monitoring
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -750,24 +735,17 @@ function main() {
 	tabs 20
 	check_root
 	clear
-<<<<<<< HEAD
-=======
-	check_root
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 	basic_config
 	check
 	print_result
 	make_report
 }
 
-#main
+main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
-<<<<<<< HEAD
 exit
 
-=======
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 #check_monitoring_sh
 # how to support float, more elegant way on opinions is the dc one
 # troncate with 2 digit after comma
@@ -779,11 +757,7 @@ exit
 # ...
 #echo "11.5 - p" | dc
 # https://www.geeksforgeeks.org/dc-command-in-linux-with-examples/
-<<<<<<< HEAD
-export THRESHOLD=0.5E
-=======
 export THRESHOLD=0.5
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 
 checked=0
 n1=11
@@ -801,15 +775,12 @@ elif [ ${n1_unit} -lt ${n2_unit} ]; then
 else
 	if [ ${n1_deci} -gt ${n2_deci} ]; then
 		if [ $() ] ; then
-<<<<<<< HEAD
 			echo
 		else
 			echo
-=======
 
 		else
 
->>>>>>> 794e23dbc2f53e7e3c2b6602cc22810e66cfdbc0
 		fi
 		echo "n1 is greater than n2"
 	elif [ ${n1_deci} -lt ${n2_deci} ]; then
