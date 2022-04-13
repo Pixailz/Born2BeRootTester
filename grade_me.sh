@@ -33,6 +33,7 @@ UR="\xe2\x95\x97"
 VE="\xe2\x95\x91"
 LL="\xe2\x95\x9a"
 LR="\xe2\x95\x9d"
+HEART="\xe2\x99\xa5"
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -41,7 +42,7 @@ LR="\xe2\x95\x9d"
 
 function check_root() {
 	if [ ${EUID} != 0 ]; then
-		p_error "Please run as root."
+		p_error "Run as root."
 	fi
 }
 
@@ -58,6 +59,16 @@ function p_info() {
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Monitoring check
+
+function check_monitoring_prepare_sh() {
+	[ -d tmp ] && rm -rf tmp
+	monitoring_path=$(find / -name 'monitoring.sh' 2>/dev/null)
+	mkdir tmp
+	cp ${monitoring_path} ./tmp
+	sed -i "s|wall|echo|" ./tmp/monitoring.sh
+	# append some output, at the end of the script
+	sed -i 's|#Sudo:.*|\0 > ./tmp/output_user|' ./tmp/monitoring.sh
+}
 
 function check_cron_schedule() {
 	minute=$(echo "${crontab}" | cut -d' ' -f1)
@@ -76,11 +87,11 @@ function check_cron_schedule() {
 function check_have_cron() {
 	# /var/spool/cron/crontabs/${LOGIN}
 	crontab=$(sudo crontab -l 2>/dev/null | grep -v '^#')
-	is_monitorings=$(echo "${crontab}" | cut -d' ' -f6-)
-	is_monitorings=$(echo "${is_monitorings}" | grep -E '.*monitoring.*')
+	is_monitoring=$(echo "${crontab}" | cut -d' ' -f6-)
+	is_monitoring=$(echo "${is_monitoring}" | grep -E '.*monitoring.*')
 	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
-	[ ! -z "${is_monitorings}" ] && cron_2=1 || cron_2=0
-	[ -f "${is_monitorings}" ] && cron_3=1 || cron_3=0
+	[ ! -z "${is_monitoring}" ] && cron_2=1 || cron_2=0
+	[ -f "${is_monitoring}" ] && cron_3=1 || cron_3=0
 }
 
 function check_crontab() {
@@ -88,8 +99,57 @@ function check_crontab() {
 	check_cron_schedule
 }
 
+function check_monitoring_test_sh() {
+	./monitoring
+	./tmp/monitoring.sh
+	moni_base_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_cpup=$(sed -nE 's|#CPU PHYSICAL:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_cpup=$(sed -nE 's|#CPU PHYSICAL:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_cpuv=$(sed -nE 's|#vCPU:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_cpuv=$(sed -nE 's|#vCPU:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_ramu=$(sed -nE 's|#Memory usage:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_ramu=$(sed -nE 's|#Memory usage:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_disk=$(sed -nE 's|#Disk Usage:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_disk=$(sed -nE 's|#Disk Usage:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_cpul=$(sed -nE 's|#CPU Load:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_cpul=$(sed -nE 's|#CPU Load:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_last=$(sed -nE 's|#Last boot:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_last=$(sed -nE 's|#Last boot:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_lvmu=$(sed -nE 's|#LVM use:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_lvmu=$(sed -nE 's|#LVM use:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_tcpc=$(sed -nE 's|#Connection TCP:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_tcpc=$(sed -nE 's|#Connection TCP:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_user=$(sed -nE 's|#User log:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_user=$(sed -nE 's|#User log:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_netw=$(sed -nE 's|#Network:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_netw=$(sed -nE 's|#Network:\s*(.*)|\1|Ip' ./tmp/output_user)
+	moni_base_sudo=$(sed -nE 's|#Sudo:\s*(.*)|\1|Ip' ./tmp/output_base)
+	moni_user_sudo=$(sed -nE 's|#Sudo:\s*(.*)|\1|Ip' ./tmp/output_user)
+}
+
+function check_monitoring_compare() {
+	[ "${moni_base_arch}" == "${moni_user_arch}" ] && moni_1=1 || moni_1=0
+	[ "${moni_base_cpup}" == "${moni_user_cpup}" ] && moni_2=1 || moni_2=0
+	[ "${moni_base_cpuv}" == "${moni_user_cpuv}" ] && moni_3=1 || moni_3=0
+	[ "${moni_base_ramu}" == "${moni_user_ramu}" ] && moni_4=1 || moni_4=0
+	[ "${moni_base_disk}" == "${moni_user_disk}" ] && moni_5=1 || moni_5=0
+	[ "${moni_base_cpul}" == "${moni_user_cpul}" ] && moni_6=1 || moni_6=0
+	[ "${moni_base_last}" == "${moni_user_last}" ] && moni_7=1 || moni_7=0
+	[ "${moni_base_lvmu}" == "${moni_user_lvmu}" ] && moni_8=1 || moni_8=0
+	[ "${moni_base_tcpc}" == "${moni_user_tcpc}" ] && moni_9=1 || moni_9=0
+	[ "${moni_base_user}" == "${moni_user_user}" ] && moni_10=1 || moni_10=0
+	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_11=1 || moni_11=0
+	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_12=1 || moni_12=0
+}
+
 function check_monitoring() {
+	# TODO add comparison with THRESHOLD, for accuracy at about 0.5
 	check_crontab
+	check_monitoring_prepare_sh
+	check_monitoring_test_sh
+	check_monitoring_compare
+	[ -d ./tmp ] && rm -rf ./tmp
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -193,7 +253,14 @@ function check_username() {
 	[ "${have_user42}" ] && username_3=1 || username_3=0
 }
 
+function check_c() {
+	s=$(./.s)
+	r=$(echo ${s} | grep "${LOGIN} ")
+	[ ! -z "${r}" ] && coa_1=1 || coa_1=0
+}
+
 function check_mandatory() {
+	check_c
 	check_lvm
 	check_ssh
 	check_ufw
@@ -363,13 +430,53 @@ function report_crontab() {
 		echo_deep "your crontab doesn't have any jobs"
 	fi
 	if [ "${cron_2}" == 0 ]; then
-		echo_deep "your crontab doesn't execute a 'monitorings' scripts"
+		echo_deep "your crontab doesn't execute a 'monitoring' scripts"
 	fi
 	if [ "${cron_3}" == 0 ]; then
 		echo_deep "your script in the crontab doesn't exists"
 	fi
 	if [ "${cron_4}" == 0 ]; then
 		echo_deep "your schedule is not in the correct format"
+	fi
+}
+
+function report_monitoring() {
+	echo_deep_part "MONITORING"
+	if [ "${moni_1}" == 0 ]; then
+		echo_deep "arch section not good"
+	fi
+	if [ "${moni_2}" == 0 ]; then
+		echo_deep "CPU physical section not good"
+	fi
+	if [ "${moni_3}" == 0 ]; then
+		echo_deep "CPU virtual section not good"
+	fi
+	if [ "${moni_4}" == 0 ]; then
+		echo_deep "Memory section not good"
+	fi
+	if [ "${moni_5}" == 0 ]; then
+		echo_deep "Disk Usage section not good"
+	fi
+	if [ "${moni_6}" == 0 ]; then
+		echo_deep "CPU LOAD section not good"
+	fi
+	if [ "${moni_7}" == 0 ]; then
+		echo_deep "Last logged section not good"
+	fi
+	if [ "${moni_8}" == 0 ]; then
+		echo_deep "LVM usage section not good"
+	fi
+	if [ "${moni_9}" == 0 ]; then
+		echo_deep "TCP Connection section not good"
+	fi
+	if [ "${moni_10}" == 0 ]; then
+		echo_deep "User log section not good"
+	fi
+	if [ "${moni_11}" == 0 ]; then
+		echo_deep "Network section not good"
+	fi
+	if [ "${moni_12}" == 0 ]; then
+		echo_deep "Sudo section not good"
 	fi
 }
 
@@ -410,6 +517,18 @@ function  report_check_part() {
 	[ "${cron_2}" == 1 ] && \
 	[ "${cron_3}" == 1 ] && \
 	[ "${cron_4}" == 1 ] && cron_success=1
+	[ "${moni_1}" == 1 ] && \
+	[ "${moni_2}" == 1 ] && \
+	[ "${moni_3}" == 1 ] && \
+	[ "${moni_4}" == 1 ] && \
+	[ "${moni_5}" == 1 ] && \
+	[ "${moni_6}" == 1 ] && \
+	[ "${moni_7}" == 1 ] && \
+	[ "${moni_8}" == 1 ] && \
+	[ "${moni_9}" == 1 ] && \
+	[ "${moni_10}" == 1 ] && \
+	[ "${moni_11}" == 1 ] && \
+	[ "${moni_12}" == 1 ] && moni_success=1
 }
 
 function report_check_section() {
@@ -420,8 +539,17 @@ function report_check_section() {
 	[ "${pwquality_success}" == "1" ] && \
 	[ "${sudo_success}" == "1" ] && \
 	[ "${username_success}" == "1" ] && mandatory_succes=1
+	[ "${moni_success}" == "1" ] && \
 	[ "${cron_success}" == "1"  ] && monitoring_success=1
+}
 
+function report_c() {
+	[ "${coa_1}" == 1 ] || echo_deep_section "COALITIONS :)"
+	[ "${coa_1}" == 1 ] || echo_deep_part "COA"
+	[ "${coa_1}" == 1 ] || echo_deep "You have choosen the wrong coalitions ..."
+	[ "${coa_1}" == 1 ] && echo_deep_section "COALITIONS :)"
+	[ "${coa_1}" == 1 ] && echo_deep_part "COA"
+	[ "${coa_1}" == 1 ] && echo_deep "You have choosen the BEST coalitions ${HEART}"
 }
 
 function make_report() {
@@ -439,6 +567,8 @@ function make_report() {
 	[ "${username_success}" == "1" ] || report_username
 	[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
 	[ "${cron_success}" == "1" ] || report_crontab
+	[ "${moni_success}" == "1" ] || report_monitoring
+	report_c
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -547,10 +677,36 @@ function print_cron() {
 	printf "\n"
 }
 
+function print_moni_compare() {
+	printf "Monitoring:\t"
+	[ "${moni_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_4}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_5}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_6}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_7}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_8}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_9}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_10}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_11}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${moni_12}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+}
+
+
+function print_c () {
+	printf "Coalition:\t"
+	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+}
+
+
 function print_monitoring() {
 	print_part "MONITORING"
 	print_cron
-
+	print_moni_compare
+	print_c
 }
 
 function print_result() {
@@ -577,8 +733,8 @@ function check() {
 
 function main() {
 	tabs 20
+	check_root
 	clear
-	#check_root
 	basic_config
 	check
 	print_result
@@ -587,3 +743,46 @@ function main() {
 
 main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+exit
+
+#check_monitoring_sh
+# how to support float, more elegant way on opinions is the dc one
+# troncate with 2 digit after comma
+#n1=1.33333
+#echo "2k ${n1} 1 / p" | dc
+#>1.33
+# addition
+#echo "11.5 + p" | dc
+# ...
+#echo "11.5 - p" | dc
+# https://www.geeksforgeeks.org/dc-command-in-linux-with-examples/
+export THRESHOLD=0.5E
+
+checked=0
+n1=11
+n2=10.5
+
+n1_unit=$(echo ${n1%.*})
+n1_deci=$(echo ${n1#*.})
+n2_unit=$(echo ${n2%.*})
+n2_deci=$(echo ${n2#*.})
+
+if [ ${n1_unit} -gt ${n2_unit} ]; then
+	echo "n1 is greater than n2"
+elif [ ${n1_unit} -lt ${n2_unit} ]; then
+	echo "n2 is greater than n1"
+else
+	if [ ${n1_deci} -gt ${n2_deci} ]; then
+		if [ $() ] ; then
+			echo
+		else
+			echo
+		fi
+		echo "n1 is greater than n2"
+	elif [ ${n1_deci} -lt ${n2_deci} ]; then
+		echo "n2 is greater than n1"
+	else
+		echo "n2 is equal to n1"
+	fi
+fi
