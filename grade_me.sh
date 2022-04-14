@@ -418,7 +418,7 @@ function report_strict_sudo() {
 }
 
 function report_username() {
-	echo_deep_part "STRICT_SUDO"
+	echo_deep_part "USER/GROUPS"
 	if [ "${username_1}" == 0 ]; then
 		echo_deep "your user don't exist or don't have the correct name"
 	fi
