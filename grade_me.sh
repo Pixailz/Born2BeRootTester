@@ -4,6 +4,7 @@
 #> Config
 
 LOGIN=brda-sil
+MONITORING_PATH=/home/brda-sil/Documents/monitoring.sh/monitoring.sh
 
 PROMPT_OFFSET=2
 TITLE_LENGTH=80
@@ -55,6 +56,10 @@ function p_info() {
 	printf "[${PROMPT_OFFSET}${blue}INFO${PROMPT_OFFSET}${reset}] $*\n"
 }
 
+function p_warn() {
+	printf "[${PROMPT_OFFSET}${orange}WARN${PROMPT_OFFSET}${reset}] $*\n"
+}
+
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -62,7 +67,8 @@ function p_info() {
 
 function check_monitoring_prepare_sh() {
 	[ -d tmp ] && rm -rf tmp
-	monitoring_path=$(find / -name 'monitoring.sh' 2>/dev/null)
+	[ -f ${MONITORING_PATH} ] && moni_1=1 || moni_1=0
+	monitoring_path=${MONITORING_PATH}
 	mkdir tmp
 	cp ${monitoring_path} ./tmp
 	sed -i "s|wall|echo|" ./tmp/monitoring.sh
@@ -129,18 +135,18 @@ function check_monitoring_test_sh() {
 }
 
 function check_monitoring_compare() {
-	[ "${moni_base_arch}" == "${moni_user_arch}" ] && moni_1=1 || moni_1=0
-	[ "${moni_base_cpup}" == "${moni_user_cpup}" ] && moni_2=1 || moni_2=0
-	[ "${moni_base_cpuv}" == "${moni_user_cpuv}" ] && moni_3=1 || moni_3=0
-	[ "${moni_base_ramu}" == "${moni_user_ramu}" ] && moni_4=1 || moni_4=0
-	[ "${moni_base_disk}" == "${moni_user_disk}" ] && moni_5=1 || moni_5=0
-	[ "${moni_base_cpul}" == "${moni_user_cpul}" ] && moni_6=1 || moni_6=0
-	[ "${moni_base_last}" == "${moni_user_last}" ] && moni_7=1 || moni_7=0
-	[ "${moni_base_lvmu}" == "${moni_user_lvmu}" ] && moni_8=1 || moni_8=0
-	[ "${moni_base_tcpc}" == "${moni_user_tcpc}" ] && moni_9=1 || moni_9=0
-	[ "${moni_base_user}" == "${moni_user_user}" ] && moni_10=1 || moni_10=0
-	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_11=1 || moni_11=0
+	[ "${moni_base_arch}" == "${moni_user_arch}" ] && moni_2=1 || moni_2=0
+	[ "${moni_base_cpup}" == "${moni_user_cpup}" ] && moni_3=1 || moni_3=0
+	[ "${moni_base_cpuv}" == "${moni_user_cpuv}" ] && moni_4=1 || moni_4=0
+	[ "${moni_base_ramu}" == "${moni_user_ramu}" ] && moni_5=1 || moni_5=0
+	[ "${moni_base_disk}" == "${moni_user_disk}" ] && moni_6=1 || moni_6=0
+	[ "${moni_base_cpul}" == "${moni_user_cpul}" ] && moni_7=1 || moni_7=0
+	[ "${moni_base_last}" == "${moni_user_last}" ] && moni_8=1 || moni_8=0
+	[ "${moni_base_lvmu}" == "${moni_user_lvmu}" ] && moni_9=1 || moni_9=0
+	[ "${moni_base_tcpc}" == "${moni_user_tcpc}" ] && moni_10=1 || moni_10=0
+	[ "${moni_base_user}" == "${moni_user_user}" ] && moni_11=1 || moni_11=0
 	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_12=1 || moni_12=0
+	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_13=1 || moni_13=0
 }
 
 function check_monitoring() {
@@ -443,39 +449,42 @@ function report_crontab() {
 function report_monitoring() {
 	echo_deep_part "MONITORING"
 	if [ "${moni_1}" == 0 ]; then
-		echo_deep "arch section not good"
+		echo_deep "monitoring script not found"
 	fi
 	if [ "${moni_2}" == 0 ]; then
-		echo_deep "CPU physical section not good"
+		echo_deep "arch section not good"
 	fi
 	if [ "${moni_3}" == 0 ]; then
-		echo_deep "CPU virtual section not good"
+		echo_deep "CPU physical section not good"
 	fi
 	if [ "${moni_4}" == 0 ]; then
-		echo_deep "Memory section not good"
+		echo_deep "CPU virtual section not good"
 	fi
 	if [ "${moni_5}" == 0 ]; then
-		echo_deep "Disk Usage section not good"
+		echo_deep "Memory section not good"
 	fi
 	if [ "${moni_6}" == 0 ]; then
-		echo_deep "CPU LOAD section not good"
+		echo_deep "Disk Usage section not good"
 	fi
 	if [ "${moni_7}" == 0 ]; then
-		echo_deep "Last logged section not good"
+		echo_deep "CPU LOAD section not good"
 	fi
 	if [ "${moni_8}" == 0 ]; then
-		echo_deep "LVM usage section not good"
+		echo_deep "Last logged section not good"
 	fi
 	if [ "${moni_9}" == 0 ]; then
-		echo_deep "TCP Connection section not good"
+		echo_deep "LVM usage section not good"
 	fi
 	if [ "${moni_10}" == 0 ]; then
-		echo_deep "User log section not good"
+		echo_deep "TCP Connection section not good"
 	fi
 	if [ "${moni_11}" == 0 ]; then
-		echo_deep "Network section not good"
+		echo_deep "User log section not good"
 	fi
 	if [ "${moni_12}" == 0 ]; then
+		echo_deep "Network section not good"
+	fi
+	if [ "${moni_13}" == 0 ]; then
 		echo_deep "Sudo section not good"
 	fi
 }
@@ -565,10 +574,12 @@ function make_report() {
 	[ "${pwquality_success}" == "1" ] || report_strong_password
 	[ "${sudo_success}" == "1" ] || report_strict_sudo
 	[ "${username_success}" == "1" ] || report_username
-	[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
-	[ "${cron_success}" == "1" ] || report_crontab
-	[ "${moni_success}" == "1" ] || report_monitoring
-	report_c
+	if [ ! -z ${MONITORING_PATH} ]; then
+		[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
+		[ "${cron_success}" == "1" ] || report_crontab
+		[ "${moni_success}" == "1" ] || report_monitoring
+		report_c
+	fi
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -712,7 +723,7 @@ function print_monitoring() {
 function print_result() {
 	print_mandatory
 	printf "\n"
-	print_monitoring
+	[ -z ${MONITORING_PATH} ] || print_monitoring
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -724,11 +735,14 @@ function basic_config() {
 	else
 		p_info "Welcome ${LOGIN}."
 	fi
+	if [ -z ${MONITORING_PATH} ]; then
+		p_warn "Monitoring path not specified"
+	fi
 }
 
 function check() {
 	check_mandatory
-	check_monitoring
+	[ -z ${MONITORING_PATH} ] || check_monitoring
 }
 
 function main() {
