@@ -182,8 +182,8 @@ function check_ssh() {
 function check_ufw() {
 	is_installed=$(sudo which ufw 2>/dev/null)
 	is_enabled=$(sudo ufw status  2>/dev/null | sed -nE 's|Status: (active)|\1|p')
-	v4_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242/tcp\s*(ALLOW)|\1|p')
-	v6_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242/tcp \(v6\)\s*(ALLOW).*|\1|p')
+	v4_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242.*(ALLOW)|\1|p')
+	v6_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242.*\(v6\)\s*(ALLOW).*|\1|p')
 	[ ${is_installed} ] && ufw_1=1 || ufw_1=0
 	[ ${is_enabled} ] && ufw_2=1 || ufw_2=0
 	if [ ! "${v4_rule}" != "ALLOW" ] || [ ! "${v6_rule}" != "ALLOW" ]; then
