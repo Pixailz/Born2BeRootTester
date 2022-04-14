@@ -574,11 +574,11 @@ function make_report() {
 	[ "${pwquality_success}" == "1" ] || report_strong_password
 	[ "${sudo_success}" == "1" ] || report_strict_sudo
 	[ "${username_success}" == "1" ] || report_username
+	report_c
 	if [ ! -z ${MONITORING_PATH} ]; then
 		[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
 		[ "${cron_success}" == "1" ] || report_crontab
 		[ "${moni_success}" == "1" ] || report_monitoring
-		report_c
 	fi
 }
 
@@ -677,6 +677,7 @@ function print_mandatory() {
 	print_strong_password
 	print_strict_sudo
 	print_username
+	print_c
 }
 
 function print_cron() {
@@ -717,7 +718,6 @@ function print_monitoring() {
 	print_part "MONITORING"
 	print_cron
 	print_moni_compare
-	print_c
 }
 
 function print_result() {
