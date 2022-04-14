@@ -3,8 +3,8 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=brda-sil
-MONITORING_PATH=/home/brda-sil/Documents/monitoring.sh/monitoring.sh
+LOGIN=
+MONITORING_PATH=
 
 PROMPT_OFFSET=2
 TITLE_LENGTH=80
