@@ -317,7 +317,7 @@ function report_lvm_crypted() {
 }
 
 function report_ssh() {
-	echo_deep_part "SSH_SEVER"
+	echo_deep_part "SSH_SERVER"
 	if [ "${ssh_1}" == 0 ]; then
 		echo_deep "openssh-server is not installed"
 	fi
