@@ -497,7 +497,8 @@ function  report_check_part() {
 	[ "${ssh_3}" == 1 ] && ssh_success=1
 	[ "${ufw_1}" == 1 ] && \
 	[ "${ufw_2}" == 1 ] && \
-	[ "${ufw_3}" == 1 ] && ufw_success=1
+	[ "${ufw_3}" == 1 ] && \
+	[ "${ufw_4}" == 1 ] && ufw_success=1
 	[ "${hostname_1}" == 1 ] && \
 	[ "${hostname_2}" == 1 ] && hostname_success=1
 	[ "${pwquality_1}" == 1 ] && \
