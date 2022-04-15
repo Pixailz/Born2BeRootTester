@@ -227,7 +227,7 @@ function check_strong_password() {
 	[ "${rule_lower}" ] && pwquality_7=1 || pwquality_7=0
 	[ "${rule_digit}" ] && pwquality_8=1 || pwquality_8=0
 	[ "${rule_maxrepeat}" ] && pwquality_9=1 || pwquality_9=0
-	[ "${rule_username}" ] && pwquality_10=1 || pwquality_10=0
+	[ "${rule_username}" == 0 ] && pwquality_10=0 || pwquality_10=1
 	[ "${rule_diff_old}" ] && pwquality_11=1 || pwquality_11=0
 	[ "${rule_force_root}" ] && pwquality_12=1 || pwquality_12=0
 }
