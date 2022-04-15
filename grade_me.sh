@@ -3,8 +3,8 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=brda-sil
-MONITORING_PATH=/usr/local/bin/monitoring
+LOGIN=
+MONITORING_PATH=
 
 PROMPT_OFFSET=2
 TITLE_LENGTH=80
@@ -210,9 +210,9 @@ function check_hostname() {
 
 function check_strong_password() {
 	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null)
-	rule_max=$(sed -nE "s|PASS_MAX_DAYS.*(30).*|\1|p" /etc/login.defs 2>/dev/null)
-	rule_min=$(sed -nE "s|PASS_MIN_DAYS.*(2).*|\1|p" /etc/login.defs 2>/dev/null)
-	rule_warn=$(sed -nE "s|PASS_WARN_AGE.*(7).*|\1|p" /etc/login.defs 2>/dev/null)
+	rule_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
+	rule_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
+	rule_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
 	rule_min_char=$(sed -nE "s|.*minlen=(10).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
 	rule_upper=$(sed -nE "s|.*ucredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
 	rule_lower=$(sed -nE "s|.*lcredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
