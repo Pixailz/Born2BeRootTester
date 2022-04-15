@@ -385,7 +385,7 @@ function report_strong_password() {
 		echo_deep "password can't have the username in it"
 	fi
 	if [ "${pwquality_11}" == 0 ]; then
-		echo_deep "password can't have more than 7 that is in the old one"
+		echo_deep "password can't have more than 7 character that is in the old one"
 	fi
 	if [ "${pwquality_12}" == 0 ]; then
 		echo_deep "password policy must be applied to root"
