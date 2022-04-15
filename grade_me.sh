@@ -183,14 +183,11 @@ function check_ufw() {
 	is_installed=$(sudo which ufw 2>/dev/null)
 	is_enabled=$(sudo ufw status  2>/dev/null | sed -nE 's|Status: (active)|\1|p')
 	rule_1=$(sudo ufw status 2>/dev/null | sed -znE 's|.*4242.*(ALLOW).*|\1|p')
-	
+	rule_2=$(sudo ufw status 2>/dev/null | sed -znE 's|.*4242/(udp).*ALLOW.*|\1|p')
 	[ ${is_installed} ] && ufw_1=1 || ufw_1=0
 	[ ${is_enabled} ] && ufw_2=1 || ufw_2=0
-	if [ "${rule}" == "ALLOW" ]; then
-		ufw_3=1
-	else
-		ufw_3=0
-	fi
+	[ "${rule_1}" == "ALLOW" ] && ufw_3=1 || ufw_3=0
+	[ "${rule_2}" == "udp" ] && ufw_4=0 || ufw_4=1
 }
 
 function check_hostname() {
@@ -339,6 +336,9 @@ function report_ufw() {
 	fi
 	if [ "${ufw_3}" == 0 ]; then
 		echo_deep "ufw don't have a rule for 4242"
+	fi
+	if [ "${ufw_4}" == 0 ]; then
+		echo_deep "SSH use tcp, not udp"
 	fi
 }
 
@@ -621,6 +621,7 @@ function print_ufw() {
 	[ ${ufw_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ ${ufw_4} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
 }
 
