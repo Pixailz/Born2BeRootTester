@@ -3,8 +3,8 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=
-MONITORING_PATH=
+LOGIN=brda-sil
+MONITORING_PATH=/usr/local/bin/monitoring
 
 PROMPT_OFFSET=2
 TITLE_LENGTH=80
@@ -66,14 +66,20 @@ function p_warn() {
 #> Monitoring check
 
 function check_monitoring_prepare_sh() {
+	#[ -f tmp ] && rm -rf tmp
 	[ -d tmp ] && rm -rf tmp
-	[ -f ${MONITORING_PATH} ] && moni_1=1 || moni_1=0
-	monitoring_path=${MONITORING_PATH}
-	mkdir tmp
-	cp ${monitoring_path} ./tmp
-	sed -i "s|wall|echo|" ./tmp/monitoring.sh
+	[ ! -d tmp ] && mkdir tmp
+	if [ -f "${MONITORING_PATH}" ]; then
+		moni_1=1
+	else
+		moni_1=0
+		p_error "${MONITORING_PATH}"
+	fi
+	MONITORING_FILE=$(echo ${MONITORING_PATH} | sed -nE 's|.*/(.*)$|\1|p')
+	cp ${MONITORING_PATH} ./tmp/
+	sed -i "s|wall|echo|" ./tmp/${MONITORING_FILE}
 	# append some output, at the end of the script
-	sed -i 's|#Sudo:.*|\0 > ./tmp/output_user|' ./tmp/monitoring.sh
+	sed -i 's|#Sudo:.*|\0 > ./tmp/output_user|' ./tmp/${MONITORING_FILE}
 }
 
 function check_cron_schedule() {
@@ -107,7 +113,7 @@ function check_crontab() {
 
 function check_monitoring_test_sh() {
 	./monitoring
-	./tmp/monitoring.sh
+	./tmp/${MONITORING_FILE}
 	moni_base_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_base)
 	moni_user_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_user)
 	moni_base_cpup=$(sed -nE 's|#CPU PHYSICAL:\s*(.*)|\1|Ip' ./tmp/output_base)
