@@ -3,7 +3,7 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=vnaud
+LOGIN=
 MONITORING_PATH=
 
 PROMPT_OFFSET=2
