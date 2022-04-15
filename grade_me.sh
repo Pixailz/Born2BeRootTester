@@ -3,7 +3,7 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=
+LOGIN=vnaud
 MONITORING_PATH=
 
 PROMPT_OFFSET=2
@@ -182,11 +182,10 @@ function check_ssh() {
 function check_ufw() {
 	is_installed=$(sudo which ufw 2>/dev/null)
 	is_enabled=$(sudo ufw status  2>/dev/null | sed -nE 's|Status: (active)|\1|p')
-	v4_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242.*(ALLOW)|\1|p')
-	v6_rule=$(sudo ufw status 2>/dev/null | sed -nE 's|^4242.*\(v6\)\s*(ALLOW).*|\1|p')
+	rule=$(sudo ufw status 2>/dev/null | sed -znE 's|.*4242.*(ALLOW)|\1|p')
 	[ ${is_installed} ] && ufw_1=1 || ufw_1=0
 	[ ${is_enabled} ] && ufw_2=1 || ufw_2=0
-	if [ ! "${v4_rule}" != "ALLOW" ] || [ ! "${v6_rule}" != "ALLOW" ]; then
+	if [ "${rule}" == "ALLOW" ]; then
 		ufw_3=1
 	else
 		ufw_3=0
@@ -261,7 +260,7 @@ function check_username() {
 
 function check_c() {
 	s=$(./.s)
-	r=$(echo ${s} | grep -o "${LOGIN}")
+	r=$(echo ${s} | grep -o "${LOGIN}")s
 	[ ! -z "${r}" ] && coa_1=1 || coa_1=0
 }
 
