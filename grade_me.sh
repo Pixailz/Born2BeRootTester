@@ -746,6 +746,10 @@ function basic_config() {
 	if [ -z ${MONITORING_PATH} ]; then
 		p_warn "Monitoring path not specified"
 	fi
+	if [ ! -f /usr/bin/bzip2 ]; then
+		p_info "Installing bzip2"
+		apt install bzip2 -y
+	fi
 }
 
 function check() {
