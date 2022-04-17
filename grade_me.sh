@@ -222,9 +222,9 @@ function check_strong_password() {
 	rule_diff_old=$(sed -nE "s|.*difok=(7).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
 	rule_force_root=$(grep -o "enforce_for_root" /etc/pam.d/common-password 2>/dev/null)
 	[ "${is_installed}" == "pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
-	[ "${rule_max}" ] && pwquality_2=1 || pwquality_2=0
-	[ "${rule_min}" ] && pwquality_3=1 || pwquality_3=0
-	[ "${rule_warn}" ] && pwquality_4=1 || pwquality_4=0
+	[ "${rule_max}" == 30 ] && pwquality_2=1 || pwquality_2=0
+	[ "${rule_min}" == 2 ] && pwquality_3=1 || pwquality_3=0
+	[ "${rule_warn}" == 7 ] && pwquality_4=1 || pwquality_4=0
 	[ "${rule_min_char}" ] && pwquality_5=1 || pwquality_5=0
 	[ "${rule_upper}" ] && pwquality_6=1 || pwquality_6=0
 	[ "${rule_lower}" ] && pwquality_7=1 || pwquality_7=0
