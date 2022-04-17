@@ -241,10 +241,10 @@ function check_strict_sudo() {
 	passwd_input=$(sudo sed -nE 's|Default.*(log_input).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_output=$(sudo sed -nE 's|Default.*(log_output).*|\1|p' /etc/sudoers 2>/dev/null)
 	log_path="/var/log/sudo/sudo.log"
-	passwd_log=$(sudo sed -nE "s|.*logfile=\"(${log_path})\".*|\1|p" /etc/sudoers 2>/dev/null)
+	passwd_log=$(sudo sed -nE "s|.*logfile=\"?(${log_path})\"?.*|\1|p" /etc/sudoers 2>/dev/null)
 	passwd_tty=$(sudo sed -nE 's|Default.*(requiretty).*|\1|p' /etc/sudoers 2>/dev/null)
 	restricted_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
-	passwd_secure_path=$(sudo sed -nE "s|Default.*(secure_path).*|\1|p" /etc/sudoers 2>/dev/null)
+	passwd_secure_path=$(sudo sed -nE "s|Default.*(secure_path=\"?.+\"?).*|\1|p" /etc/sudoers 2>/dev/null)
 	[ "${passwd_tries}" ] && sudo_1=1 || sudo_1=0
 	[ "${passwd_message}" ] && sudo_2=1 || sudo_2=0
 	[ "${passwd_input}" ] && sudo_3=1 || sudo_3=0
