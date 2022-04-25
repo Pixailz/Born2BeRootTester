@@ -83,6 +83,7 @@ function check_monitoring_prepare_sh() {
 }
 
 function check_cron_schedule() {
+	crontab=$(sudo crontab -l 2>/dev/null | sed -nE "s|(.*)${crontab}$|\1|p")
 	minute=$(echo "${crontab}" | cut -d' ' -f1)
 	hour=$(echo "${crontab}" | cut -d' ' -f2)
 	day_m=$(echo "${crontab}" | cut -d' ' -f3)
