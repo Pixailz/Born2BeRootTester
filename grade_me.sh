@@ -672,6 +672,9 @@ function print_strong_password() {
 	[ "${pwquality_10}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_11}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_12}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_13}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_14}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_15}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
 }
 
