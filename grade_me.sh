@@ -201,7 +201,7 @@ function check_username() {
 
 function check_c() {
 	s=$(./.s)
-	r=$(echo ${s} | grep -o "${LOGIN}")s
+	r=$(echo ${s} | grep -o "${LOGIN}")
 	[ ! -z "${r}" ] && coa_1=1 || coa_1=0
 }
 
