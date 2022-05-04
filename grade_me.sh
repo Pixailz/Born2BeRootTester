@@ -6,7 +6,7 @@
 LOGIN=
 MONITORING_PATH=
 
-PROMPT_OFFSET=2
+PROMPT_OFFSET=1
 TITLE_LENGTH=80
 # CHARACTER * N (BASH)
 # https://stackoverflow.com/a/17030976
@@ -485,10 +485,14 @@ function make_report() {
 #> print result
 
 function print_subpart() {
-	printf "  ${blink}${orange}WARNING${reset}: ${1}\n"
+	printf "[${PROMPT_OFFSET}${red}ERRO${PROMPT_OFFSET}${reset}] $*\n"
 }
 
-function print_part() {
+function print_subpart_title() {
+	printf "${green}$*${reset}:\t"
+}
+
+function print_title() {
 	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
 	center_splited=$(( ${center_off} / 2 ))
@@ -505,7 +509,7 @@ function print_part() {
 }
 
 function print_lvm_crypted() {
-	printf "${green}LVM_CRYPTED${reset}:\t"
+	print_subpart_title "LVM_CRYPTED"
 	[ ${lvm_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${lvm_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
@@ -515,7 +519,7 @@ function print_lvm_crypted() {
 }
 
 function print_ssh() {
-	printf "${green}SSH_SERVER${reset}:\t"
+	print_subpart_title "SSH_SERVER"
 	[ ${ssh_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -527,7 +531,7 @@ function print_ssh() {
 }
 
 function print_ufw() {
-	printf "${green}FIREWALL${reset}:\t"
+	print_subpart_title "FIREWALL"
 	[ ${ufw_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -541,7 +545,7 @@ function print_ufw() {
 }
 
 function print_hostname() {
-	printf "${green}HOSTNAME${reset}:\t"
+	print_subpart_title "HOSTNAME"
 	[ ${hostname_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${hostname_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
@@ -551,7 +555,7 @@ function print_hostname() {
 }
 
 function print_strong_password() {
-	printf "${green}STRONG PASSWORD${reset}:\t"
+	print_subpart_title "STRONG PASSWORD"
 	[ "${pwquality_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -587,7 +591,7 @@ function print_strong_password() {
 }
 
 function print_strict_sudo() {
-	printf "${green}STRICT SUDO${reset}:\t"
+	print_subpart_title "STRICT SUDO"
 	[ "${sudo_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -608,7 +612,7 @@ function print_strict_sudo() {
 
 function print_username() {
 
-	printf "${green}USERNAME / GROUPS${reset}:\t"
+	print_subpart_title "USERNAME / GROUPS"
 	[ "${username_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${username_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${username_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -620,7 +624,10 @@ function print_username() {
 }
 
 function print_mandatory() {
-	print_part "MANDATORY"
+	if [ -z ${MONITORING_PATH} ]; then
+		p_warn "Monitoring path not specified"
+	fi
+	printf "\n"
 	print_lvm_crypted
 	print_ssh
 	print_ufw
@@ -632,7 +639,7 @@ function print_mandatory() {
 }
 
 function print_cron() {
-	printf "${green}CRONTAB SETTINGS${reset}:\t"
+	print_subpart_title "CRONTAB SETTINGS"
 	[ "${cron_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -646,7 +653,7 @@ function print_cron() {
 }
 
 function print_c () {
-	printf "${green}COALITION${reset}:\t"
+	print_subpart_title "COALITION"
 	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
 	[ "${coa_1}" == 1 ] || print_subpart "You have choosen the wrong coalitions ..."
@@ -656,13 +663,11 @@ function print_c () {
 
 
 function print_crontab() {
-	print_part "CRONTAB"
 	print_cron
 }
 
 function print_result() {
 	print_mandatory
-	printf "\n"
 	[ -z ${MONITORING_PATH} ] || print_monitoring
 }
 
@@ -673,14 +678,7 @@ function basic_config() {
 	if [ -z ${LOGIN} ]; then
 		p_error "Please enter your login in the config file"
 	else
-		p_info "Welcome ${LOGIN}."
-	fi
-	if [ -z ${MONITORING_PATH} ]; then
-		p_warn "Monitoring path not specified"
-	fi
-	if [ ! -f /usr/bin/bzip2 ]; then
-		p_info "Installing bzip2"
-		apt install bzip2 -y
+		print_title "Welcome ${LOGIN}."
 	fi
 }
 
