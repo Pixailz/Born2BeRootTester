@@ -63,24 +63,7 @@ function p_warn() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> Monitoring check
-
-function check_monitoring_prepare_sh() {
-	#[ -f tmp ] && rm -rf tmp
-	[ -d tmp ] && rm -rf tmp
-	[ ! -d tmp ] && mkdir tmp
-	if [ -f "${MONITORING_PATH}" ]; then
-		moni_1=1
-	else
-		moni_1=0
-		p_error "${MONITORING_PATH}"
-	fi
-	MONITORING_FILE=$(echo ${MONITORING_PATH} | sed -nE 's|.*/(.*)$|\1|p')
-	cp ${MONITORING_PATH} ./tmp/
-	sed -i "s|wall|echo|" ./tmp/${MONITORING_FILE}
-	# append some output, at the end of the script
-	sed -i 's|#Sudo:.*|\0 > ./tmp/output_user|' ./tmp/${MONITORING_FILE}
-}
+#> Crontab check
 
 function check_cron_schedule() {
 	crontab=$(sudo crontab -l 2>/dev/null | sed -nE "s|(.*)${MONITORING_PATH}$|\1|p")
@@ -110,59 +93,6 @@ function check_have_cron() {
 function check_crontab() {
 	check_have_cron
 	check_cron_schedule
-}
-
-function check_monitoring_test_sh() {
-	./monitoring
-	./tmp/${MONITORING_FILE}
-	moni_base_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_arch=$(sed -nE 's|#Architecture:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_cpup=$(sed -nE 's|#CPU PHYSICAL:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_cpup=$(sed -nE 's|#CPU PHYSICAL:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_cpuv=$(sed -nE 's|#vCPU:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_cpuv=$(sed -nE 's|#vCPU:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_ramu=$(sed -nE 's|#Memory usage:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_ramu=$(sed -nE 's|#Memory usage:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_disk=$(sed -nE 's|#Disk Usage:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_disk=$(sed -nE 's|#Disk Usage:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_cpul=$(sed -nE 's|#CPU Load:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_cpul=$(sed -nE 's|#CPU Load:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_last=$(sed -nE 's|#Last boot:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_last=$(sed -nE 's|#Last boot:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_lvmu=$(sed -nE 's|#LVM use:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_lvmu=$(sed -nE 's|#LVM use:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_tcpc=$(sed -nE 's|#Connection TCP:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_tcpc=$(sed -nE 's|#Connection TCP:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_user=$(sed -nE 's|#User log:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_user=$(sed -nE 's|#User log:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_netw=$(sed -nE 's|#Network:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_netw=$(sed -nE 's|#Network:\s*(.*)|\1|Ip' ./tmp/output_user)
-	moni_base_sudo=$(sed -nE 's|#Sudo:\s*(.*)|\1|Ip' ./tmp/output_base)
-	moni_user_sudo=$(sed -nE 's|#Sudo:\s*(.*)|\1|Ip' ./tmp/output_user)
-}
-
-function check_monitoring_compare() {
-	[ "${moni_base_arch}" == "${moni_user_arch}" ] && moni_2=1 || moni_2=0
-	[ "${moni_base_cpup}" == "${moni_user_cpup}" ] && moni_3=1 || moni_3=0
-	[ "${moni_base_cpuv}" == "${moni_user_cpuv}" ] && moni_4=1 || moni_4=0
-	[ "${moni_base_ramu}" == "${moni_user_ramu}" ] && moni_5=1 || moni_5=0
-	[ "${moni_base_disk}" == "${moni_user_disk}" ] && moni_6=1 || moni_6=0
-	[ "${moni_base_cpul}" == "${moni_user_cpul}" ] && moni_7=1 || moni_7=0
-	[ "${moni_base_last}" == "${moni_user_last}" ] && moni_8=1 || moni_8=0
-	[ "${moni_base_lvmu}" == "${moni_user_lvmu}" ] && moni_9=1 || moni_9=0
-	[ "${moni_base_tcpc}" == "${moni_user_tcpc}" ] && moni_10=1 || moni_10=0
-	[ "${moni_base_user}" == "${moni_user_user}" ] && moni_11=1 || moni_11=0
-	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_12=1 || moni_12=0
-	[ "${moni_base_netw}" == "${moni_user_netw}" ] && moni_13=1 || moni_13=0
-}
-
-function check_monitoring() {
-	# TODO add comparison with THRESHOLD, for accuracy at about 0.5
-	check_crontab
-	check_monitoring_prepare_sh
-	check_monitoring_test_sh
-	check_monitoring_compare
-	[ -d ./tmp ] && rm -rf ./tmp
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -468,49 +398,6 @@ function report_crontab() {
 	fi
 }
 
-function report_monitoring() {
-	echo_deep_part "MONITORING"
-	if [ "${moni_1}" == 0 ]; then
-		echo_deep "monitoring script not found"
-	fi
-	if [ "${moni_2}" == 0 ]; then
-		echo_deep "arch section not good"
-	fi
-	if [ "${moni_3}" == 0 ]; then
-		echo_deep "CPU physical section not good"
-	fi
-	if [ "${moni_4}" == 0 ]; then
-		echo_deep "CPU virtual section not good"
-	fi
-	if [ "${moni_5}" == 0 ]; then
-		echo_deep "Memory section not good"
-	fi
-	if [ "${moni_6}" == 0 ]; then
-		echo_deep "Disk Usage section not good"
-	fi
-	if [ "${moni_7}" == 0 ]; then
-		echo_deep "CPU LOAD section not good"
-	fi
-	if [ "${moni_8}" == 0 ]; then
-		echo_deep "Last logged section not good"
-	fi
-	if [ "${moni_9}" == 0 ]; then
-		echo_deep "LVM usage section not good"
-	fi
-	if [ "${moni_10}" == 0 ]; then
-		echo_deep "TCP Connection section not good"
-	fi
-	if [ "${moni_11}" == 0 ]; then
-		echo_deep "User log section not good"
-	fi
-	if [ "${moni_12}" == 0 ]; then
-		echo_deep "Network section not good"
-	fi
-	if [ "${moni_13}" == 0 ]; then
-		echo_deep "Sudo section not good"
-	fi
-}
-
 function  report_check_part() {
 	[ "${lvm_1}" == 1 ] && \
 	[ "${lvm_2}" == 1 ] && lvm_success=1
@@ -552,18 +439,6 @@ function  report_check_part() {
 	[ "${cron_2}" == 1 ] && \
 	[ "${cron_3}" == 1 ] && \
 	[ "${cron_4}" == 1 ] && cron_success=1
-	[ "${moni_1}" == 1 ] && \
-	[ "${moni_2}" == 1 ] && \
-	[ "${moni_3}" == 1 ] && \
-	[ "${moni_4}" == 1 ] && \
-	[ "${moni_5}" == 1 ] && \
-	[ "${moni_6}" == 1 ] && \
-	[ "${moni_7}" == 1 ] && \
-	[ "${moni_8}" == 1 ] && \
-	[ "${moni_9}" == 1 ] && \
-	[ "${moni_10}" == 1 ] && \
-	[ "${moni_11}" == 1 ] && \
-	[ "${moni_12}" == 1 ] && moni_success=1
 }
 
 function report_check_section() {
@@ -574,7 +449,6 @@ function report_check_section() {
 	[ "${pwquality_success}" == "1" ] && \
 	[ "${sudo_success}" == "1" ] && \
 	[ "${username_success}" == "1" ] && mandatory_succes=1
-	[ "${moni_success}" == "1" ] && \
 	[ "${cron_success}" == "1"  ] && monitoring_success=1
 }
 
@@ -604,7 +478,6 @@ function make_report() {
 	if [ ! -z ${MONITORING_PATH} ]; then
 		[ "${monitoring_succes}" == "1" ] || echo_deep_section "MONITORING"
 		[ "${cron_success}" == "1" ] || report_crontab
-		[ "${moni_success}" == "1" ] || report_monitoring
 	fi
 }
 
@@ -719,24 +592,6 @@ function print_cron() {
 	printf "\n"
 }
 
-function print_moni_compare() {
-	printf "Monitoring:\t"
-	[ "${moni_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_4}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_5}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_6}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_7}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_8}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_9}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_10}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_11}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	[ "${moni_12}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	printf "\n"
-}
-
-
 function print_c () {
 	printf "Coalition:\t"
 	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -744,10 +599,9 @@ function print_c () {
 }
 
 
-function print_monitoring() {
-	print_part "MONITORING"
+function print_crontab() {
+	print_part "CRONTAB"
 	print_cron
-	print_moni_compare
 }
 
 function print_result() {
