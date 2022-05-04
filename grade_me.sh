@@ -34,7 +34,7 @@ UR="\xe2\x95\x97"
 VE="\xe2\x95\x91"
 LL="\xe2\x95\x9a"
 LR="\xe2\x95\x9d"
-HEART="\xe2\x99\xa5"
+HEART="${blink}\xe2\x99\xa5${reset}"
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -484,6 +484,10 @@ function make_report() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> print result
 
+function print_subpart() {
+	printf "  ${blink}${orange}WARNING${reset}: ${1}\n"
+}
+
 function print_part() {
 	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
@@ -501,38 +505,53 @@ function print_part() {
 }
 
 function print_lvm_crypted() {
-	printf "lvm_crypted:\t"
+	printf "${green}LVM_CRYPTED${reset}:\t"
 	[ ${lvm_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${lvm_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+	[ ${lvm_1} == 1 ] || print_subpart "your virtual machine don't have at least 2 LVM partition"
+	[ ${lvm_2} == 1 ] || print_subpart "your virtual machine don't use crypted LVM"
 	printf "\n"
 }
 
 function print_ssh() {
-	printf "ssh_server:\t"
+	printf "${green}SSH_SERVER${reset}:\t"
 	[ ${ssh_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
+	[ ${ssh_1} == 1 ] || print_subpart "openssh-server is not installed"
+	[ ${ssh_2} == 1 ] || print_subpart "wrong port, ${ssh_port} instead of 4242"
+	[ ${ssh_3} == 1 ] || print_subpart "you don't prevent root to login from ssh"
+	printf "\n"
 }
 
 function print_ufw() {
-	printf "Firewall:\t"
+	printf "${green}FIREWALL${reset}:\t"
 	[ ${ufw_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_3} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_4} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
+	[ ${ufw_1} == 1 ] || print_subpart "ufw is not installed"
+	[ ${ufw_2} == 1 ] || print_subpart "ufw is not enabled"
+	[ ${ufw_3} == 1 ] || print_subpart "ufw don't have a rule for 4242"
+	[ ${ufw_4} == 1 ] || print_subpart "SSH use tcp, not udp"
+	printf "\n"
 }
 
 function print_hostname() {
-	printf "hostname:\t"
+	printf "${green}HOSTNAME${reset}:\t"
 	[ ${hostname_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${hostname_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+	[ ${hostname_1} == 1 ] || print_subpart "the command hostname ($(hostname)) don't return ${LOGIN}42"
+	[ ${hostname_2} == 1 ] || print_subpart "your hosts file is not configured properly"
 	printf "\n"
 }
 
 function print_strong_password() {
-	printf "Strong Password:\t"
+	printf "${green}STRONG PASSWORD${reset}:\t"
 	[ "${pwquality_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -549,10 +568,26 @@ function print_strong_password() {
 	[ "${pwquality_14}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_15}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
+	[ "${pwquality_1}" == 1 ] || print_subpart "the 'libpam-pwquality' package is not installed"
+	[ "${pwquality_2}" == 1 ] || print_subpart "wrong current user password expiration"
+	[ "${pwquality_3}" == 1 ] || print_subpart "wrong current user minimum day with a password"
+	[ "${pwquality_4}" == 1 ] || print_subpart "wrong current user day before warning"
+	[ "${pwquality_5}" == 1 ] || print_subpart "wrong new user password expiration"
+	[ "${pwquality_6}" == 1 ] || print_subpart "wrong new user minimum day with a password"
+	[ "${pwquality_7}" == 1 ] || print_subpart "wrong new user day before warning"
+	[ "${pwquality_8}" == 1 ] || print_subpart "wrong minimum length for a password"
+	[ "${pwquality_9}" == 1 ] || print_subpart "wrong minimum upper character for a password"
+	[ "${pwquality_10}" == 1 ] || print_subpart "wrong minimum lower character for a password"
+	[ "${pwquality_11}" == 1 ] || print_subpart "wrong minimum digit character for a password"
+	[ "${pwquality_12}" == 1 ] || print_subpart "wrong max consecutive character in a password"
+	[ "${pwquality_13}" == 1 ] || print_subpart "password can't have the username in it"
+	[ "${pwquality_14}" == 1 ] || print_subpart "password can't have more than 7 character that is in the old one"
+	[ "${pwquality_15}" == 1 ] || print_subpart "password policy must be applied to root"
+	printf "\n"
 }
 
 function print_strict_sudo() {
-	printf "Strict Sudo:\t"
+	printf "${green}STRICT SUDO${reset}:\t"
 	[ "${sudo_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -561,13 +596,26 @@ function print_strict_sudo() {
 	[ "${sudo_6}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_7}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
+	[ "${sudo_1}" == 1 ] || print_subpart "wrong sudo max tries"
+	[ "${sudo_2}" == 1 ] || print_subpart "you don't have set message or is empty"
+	[ "${sudo_3}" == 1 ] || print_subpart "you don't store input sudo log"
+	[ "${sudo_4}" == 1 ] || print_subpart "you don't store output sudo log"
+	[ "${sudo_5}" == 1 ] || print_subpart "you don't store sudo log in the correct folder"
+	[ "${sudo_6}" == 1 ] || print_subpart "you don't activate TTY"
+	[ "${sudo_7}" == 1 ] || print_subpart "you don't have set the secure_path"
+	printf "\n"
 }
 
 function print_username() {
-	printf "Username / Groups:\t"
+
+	printf "${green}USERNAME / GROUPS${reset}:\t"
 	[ "${username_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${username_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${username_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+	[ "${username_1}" == 1 ] || print_subpart "your user don't exist or don't have the correct name"
+	[ "${username_2}" == 1 ] || print_subpart "your user don't belong to sudo group"
+	[ "${username_3}" == 1 ] || print_subpart "your user don't belong to user42 group"
 	printf "\n"
 }
 
@@ -584,17 +632,25 @@ function print_mandatory() {
 }
 
 function print_cron() {
-	printf "Crontab Setting:\t"
+	printf "${green}CRONTAB SETTINGS${reset}:\t"
 	[ "${cron_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_3}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_4}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
+	[ "${cron_1}" == 1 ] || print_subpart "your crontab doesn't have any jobs"
+	[ "${cron_2}" == 1 ] || print_subpart "your crontab doesn't execute a 'monitoring' scripts"
+	[ "${cron_3}" == 1 ] || print_subpart "your script in the crontab doesn't exists"
+	[ "${cron_4}" == 1 ] || print_subpart "your schedule is not in the correct format"
+	printf "\n"
 }
 
 function print_c () {
-	printf "Coalition:\t"
+	printf "${green}COALITION${reset}:\t"
 	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	printf "\n"
+	[ "${coa_1}" == 1 ] || print_subpart "You have choosen the wrong coalitions ..."
+	[ "${coa_1}" == 1 ] && print_subpart "You have choosen the BEST coalitions ${HEART}"
 	printf "\n"
 }
 
