@@ -252,7 +252,7 @@ function report_lvm_crypted() {
 		echo_deep "your virtual machine don't have at least 2 LVM partition"
 	fi
 	if [ "${lvm_2}" == 0 ]; then
-		echo_deep "your virtual machine don't uise crypted LVM"
+		echo_deep "your virtual machine don't use crypted LVM"
 	fi
 }
 
