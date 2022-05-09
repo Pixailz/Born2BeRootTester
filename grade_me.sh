@@ -668,7 +668,7 @@ function print_crontab() {
 
 function print_result() {
 	print_mandatory
-	[ -z ${MONITORING_PATH} ] || print_monitoring
+	[ -z ${MONITORING_PATH} ] || print_crontab
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -684,7 +684,7 @@ function basic_config() {
 
 function check() {
 	check_mandatory
-	[ -z ${MONITORING_PATH} ] || check_monitoring
+	[ -z ${MONITORING_PATH} ] || check_crontab
 }
 
 function main() {
