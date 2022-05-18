@@ -3,7 +3,7 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=
+LOGIN=pix
 MONITORING_PATH=
 MONITORING_PATH=$(realpath ${MONITORING_PATH})
 PROMPT_OFFSET=1
@@ -109,8 +109,8 @@ function check_lvm() {
 
 function check_ssh() {
 	is_installed=$(sudo systemctl list-units 2>/dev/null | grep -o ssh)
-	ssh_port=$(sed -nE 's|^Port\s*(.*)$|\1|p' /etc/ssh/sshd_config 2>/dev/null)
-	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no)$|\1|p' /etc/ssh/sshd_config 2>/dev/null)
+	ssh_port=$(sed -nE 's|^Port\s*([0-9]*).*|\1|p' /etc/ssh/sshd_config 2>/dev/null)
+	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no).*|\1|p' /etc/ssh/sshd_config 2>/dev/null)
 	[ ${is_installed} ] && ssh_1=1 || ssh_1=0
 	[ "${ssh_port}" == 4242 ] && ssh_2=1 || ssh_2=0
 	[ ${prohibit_root} ] && ssh_3=1 || ssh_3=0
