@@ -5,8 +5,15 @@ for Debian only (I think)
 
 ## HOW TO USE
 
-git clone this repo to the Virtual Machine edit the config header on the <br>
-grade_me.sh script and launch it :)
+```bash
+bash$ git clone git@github.com:Pixailz/Born2BeRootTester
+bash$ cd Born2BeRootTester
+bash$ sudo ./grade_me.sh -h
+Usage : ./grade_me.sh -u LOGIN [-m MONITORING_PATH]
+    -h : show this help
+    -u : specify the user login of the students
+    -m : specify the monitoring
+```
 
 ## TODO
 
