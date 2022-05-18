@@ -3,9 +3,6 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=
-MONITORING_PATH=
-MONITORING_PATH=$(realpath ${MONITORING_PATH})
 PROMPT_OFFSET=1
 TITLE_LENGTH=80
 # CHARACTER * N (BASH)
@@ -58,6 +55,15 @@ function p_info() {
 
 function p_warn() {
 	printf "[${PROMPT_OFFSET}${orange}WARN${PROMPT_OFFSET}${reset}] $*\n"
+}
+
+function usage() {
+	[ ! -z "${1}" ] && p_warn "$1"
+	printf "Usage : ${0} -u LOGIN [-m MONITORING_PATH]\n"
+	printf "\t-h : show this help\n"
+	printf "\t-u : specify the user login of the students\n"
+	printf "\t-m : specify the monitoring \n"
+	exit
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -624,10 +630,10 @@ function print_username() {
 }
 
 function print_mandatory() {
-	if [ -z ${MONITORING_PATH} ]; then
+	if [ -z "${MONITORING_PATH}" ]; then
 		p_warn "Monitoring path not specified"
+		printf "\n"
 	fi
-	printf "\n"
 	print_lvm_crypted
 	print_ssh
 	print_ufw
@@ -676,7 +682,7 @@ function print_result() {
 
 function basic_config() {
 	if [ -z ${LOGIN} ]; then
-		p_error "Please enter your login in the config file"
+		usage "Login (-u) is require"
 	else
 		print_title "Welcome ${LOGIN}."
 	fi
@@ -702,6 +708,36 @@ function main() {
 	print_result
 	make_report
 }
+
+while [ "$1" != "" ]; do
+	case $1 in
+		-u)
+			shift
+			if [ -z ${1} ]; then
+				usage "-u must be followed by your login"
+			else
+				LOGIN="${1}"
+			fi
+			;;
+		-m)
+			shift
+			if [ -z ${1} ]; then
+				usage "-m must be followed by the path of the monitoring script"
+			elif [ ! -f ${1} ]; then
+				p_error "Wrong monitoring path"
+			else
+				MONITORING_PATH=$(realpath ${1})
+			fi
+			;;
+		-h)
+			usage
+			;;
+		*)
+			usage "Wrong args"
+			;;
+	esac
+	shift
+done
 
 main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
