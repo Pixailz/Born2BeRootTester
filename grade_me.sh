@@ -146,9 +146,9 @@ function check_hostname() {
 }
 
 function check_pam_and_sec() {
-	is_in_common=$(grep -v '^#' | sed -nE "s|.*${1}\s*?=\s*?([0-9]*).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	is_in_common=$(grep -v '^#' /etc/pam.d/common-password| sed -nE "s|.*${1}\s*?=\s*?([0-9]*).*|\1|p" 2>/dev/null)
 	if [ -z ${is_in_common} ]; then
-		is_in_security=$(grep -v '^#' | sed -nE ".*?${1}\s*?=\s*?([0-9]*).*|\1|p" /etc/security/pwquality.conf 2>/dev/null)
+		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf | sed -nE ".*?${1}\s*?=\s*?([0-9]*).*|\1|p" 2>/dev/null)
 		if [ -z ${is_in_security} ]; then
 			return 0
 		else
