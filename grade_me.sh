@@ -194,7 +194,7 @@ function check_username() {
 	username=$(cat /etc/passwd | grep -o ${LOGIN} | uniq)
 	have_sudo=$(id ${LOGIN} 2>/dev/null | grep -o sudo)
 	have_user42=$(id ${LOGIN} 2>/dev/null | grep -o user42)
-	[ "${username}" == ${LOGIN} ] && username_1=1 || username_1=0
+	[ "${username}" == "${LOGIN}" ] && username_1=1 || username_1=0
 	[ "${have_sudo}" ] && username_2=1 || username_2=0
 	[ "${have_user42}" ] && username_3=1 || username_3=0
 }
