@@ -11,5 +11,6 @@ grade_me.sh script and launch it :)
 ## TODO
 
 1. add /etc/security/pwquality.conf
-    - search diff between common-password pwquality
-    - add checker to correctly check
+    - pam.d/common-password > security/pwquality.conf
+    - add checker if variable is in both file :)
+2. add installer for bzip2
