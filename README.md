@@ -11,5 +11,5 @@ grade_me.sh script and launch it :)
 ## TODO
 
 1. add /etc/security/pwquality.conf
-  - search diff between common-password pwquality
-  - add checker to correctly check
+    - search diff between common-password pwquality
+    - add checker to correctly check
