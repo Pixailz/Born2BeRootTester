@@ -680,6 +680,12 @@ function basic_config() {
 	else
 		print_title "Welcome ${LOGIN}."
 	fi
+	if [ -z $(which bunzip2) ]; then
+		p_warn "bzip2 not installed. installing it now"
+		printf "\n"
+		sudo apt install -y bzip2
+		printf "\n"
+	fi
 }
 
 function check() {
