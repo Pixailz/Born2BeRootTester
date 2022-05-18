@@ -145,6 +145,21 @@ function check_hostname() {
 	fi
 }
 
+function check_pam_and_sec() {
+	is_in_common=$(sed -nE "s|.*${1}=([0-9]*).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
+	if [ -z ${is_in_common} ]; then
+		is_in_security=$(sed -nE "s|^^#.*?${1}\s*?=\s*?([0-9]*).*|\1|p" /etc/security/pwquality.conf 2>/dev/null)
+		if [ -z ${is_in_security} ]; then
+			return 0
+		else
+			return ${is_in_security}
+		fi
+	else
+		echo $min_char
+		return ${is_in_common}
+	fi
+}
+
 function check_strong_password() {
 	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null)
 	rule_user_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
@@ -153,14 +168,31 @@ function check_strong_password() {
 	rule_new_max=$(sed -nE "s|PASS_MAX_DAYS.*(30).*|\1|p" /etc/login.defs 2>/dev/null)
 	rule_new_min=$(sed -nE "s|PASS_MIN_DAYS.*(2).*|\1|p" /etc/login.defs 2>/dev/null)
 	rule_new_warn=$(sed -nE "s|PASS_WARN_AGE.*(7).*|\1|p" /etc/login.defs 2>/dev/null)
-	rule_min_char=$(sed -nE "s|.*minlen=(10).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_upper=$(sed -nE "s|.*ucredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_lower=$(sed -nE "s|.*lcredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_digit=$(sed -nE "s|.*dcredit=(-1).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_maxrepeat=$(sed -nE "s|.*maxrepeat=(3).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_username=$(sed -nE "s|.*usercheck=([0-9]).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_diff_old=$(sed -nE "s|.*difok=(7).*|\1|p" /etc/pam.d/common-password 2>/dev/null)
-	rule_force_root=$(grep -o "enforce_for_root" /etc/pam.d/common-password 2>/dev/null)
+	check_pam_and_sec "minlen"
+	rule_min_char=${?}
+	check_pam_and_sec "ucredit"
+	rule_upper=${?}
+	check_pam_and_sec "lcredit"
+	rule_lower=${?}
+	check_pam_and_sec "dcredit"
+	rule_digit=${?}
+	check_pam_and_sec "maxrepeat"
+	rule_maxrepeat=${?}
+	check_pam_and_sec "usercheck"
+	rule_username=${?}
+	check_pam_and_sec "difok"
+	rule_diff_old=${?}
+	is_in_common=$(grep -v '^#' /etc/pam.d/common-password | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
+	if [ -z ${is_in_common} ]; then
+		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
+		if [ -z "${is_in_security}" ]; then
+			rule_force_root="0"
+		else
+			rule_force_root=${is_in_security}
+		fi
+	else
+		rule_force_root=${is_in_common}
+	fi
 	[ "${is_installed}" == "pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
 	[ "${rule_user_max}" == 30 ] && pwquality_2=1 || pwquality_2=0
 	[ "${rule_user_min}" == 2 ] && pwquality_3=1 || pwquality_3=0
@@ -168,14 +200,14 @@ function check_strong_password() {
 	[ "${rule_new_max}" == 30 ] && pwquality_5=1 || pwquality_5=0
 	[ "${rule_new_min}" == 2 ] && pwquality_6=1 || pwquality_6=0
 	[ "${rule_new_warn}" == 7 ] && pwquality_7=1 || pwquality_7=0
-	[ "${rule_min_char}" ] && pwquality_8=1 || pwquality_8=0
-	[ "${rule_upper}" ] && pwquality_9=1 || pwquality_9=0
-	[ "${rule_lower}" ] && pwquality_10=1 || pwquality_10=0
-	[ "${rule_digit}" ] && pwquality_11=1 || pwquality_11=0
-	[ "${rule_maxrepeat}" ] && pwquality_12=1 || pwquality_12=0
+	[ "${rule_min_char}" == 10 ] && pwquality_8=1 || pwquality_8=0
+	[ "${rule_upper}" == -1 ] && pwquality_9=1 || pwquality_9=0
+	[ "${rule_lower}" == -1 ] && pwquality_10=1 || pwquality_10=0
+	[ "${rule_digit}" == -1 ] && pwquality_11=1 || pwquality_11=0
+	[ "${rule_maxrepeat}" == 3 ] && pwquality_12=1 || pwquality_12=0
 	[ "${rule_username}" == 0 ] && pwquality_13=0 || pwquality_13=1
-	[ "${rule_diff_old}" ] && pwquality_14=1 || pwquality_14=0
-	[ "${rule_force_root}" ] && pwquality_15=1 || pwquality_15=0
+	[ "${rule_diff_old}" == 7 ] && pwquality_14=1 || pwquality_14=0
+	[ "${rule_force_root}" == "enforce_for_root" ] && pwquality_15=1 || pwquality_15=0
 }
 
 function check_strict_sudo() {
