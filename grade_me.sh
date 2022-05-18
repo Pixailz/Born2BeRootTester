@@ -3,7 +3,7 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Config
 
-LOGIN=pix
+LOGIN=
 MONITORING_PATH=
 MONITORING_PATH=$(realpath ${MONITORING_PATH})
 PROMPT_OFFSET=1
