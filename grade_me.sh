@@ -146,9 +146,11 @@ function check_hostname() {
 }
 
 function check_pam_and_sec() {
-	is_in_common=$(grep -v '^#' /etc/pam.d/common-password| sed -nE "s|.*${1}\s*?=\s*?([0-9]*).*|\1|p" 2>/dev/null)
+	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | \
+					sed -nE "s|.*?${1}\s*?=\s*?([0-9-]*).*|\1|p" 2>/dev/null)
 	if [ -z ${is_in_common} ]; then
-		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf | sed -nE ".*?${1}\s*?=\s*?([0-9]*).*|\1|p" 2>/dev/null)
+		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf 2>/dev/null | \
+					sed -nE "s|.*?${1}\s*?=\s*?([0-9-]*).*|\1|p" 2>/dev/null)
 		if [ -z ${is_in_security} ]; then
 			return 0
 		else
@@ -181,9 +183,9 @@ function check_strong_password() {
 	rule_username=${?}
 	check_pam_and_sec "difok"
 	rule_diff_old=${?}
-	is_in_common=$(grep -v '^#' /etc/pam.d/common-password | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
+	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
 	if [ -z ${is_in_common} ]; then
-		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
+		is_in_security=$(grep -v '^#' /etc/security/pwquality.conf 2>/dev/null sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
 		if [ -z "${is_in_security}" ]; then
 			rule_force_root="0"
 		else
