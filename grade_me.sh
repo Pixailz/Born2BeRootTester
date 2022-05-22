@@ -202,9 +202,9 @@ function check_strong_password() {
 	[ "${rule_new_min}" == 2 ] && pwquality_6=1 || pwquality_6=0
 	[ "${rule_new_warn}" == 7 ] && pwquality_7=1 || pwquality_7=0
 	[ "${rule_min_char}" == 10 ] && pwquality_8=1 || pwquality_8=0
-	[ "${rule_upper}" == -1 ] && pwquality_9=1 || pwquality_9=0
-	[ "${rule_lower}" == -1 ] && pwquality_10=1 || pwquality_10=0
-	[ "${rule_digit}" == -1 ] && pwquality_11=1 || pwquality_11=0
+	[ "${rule_upper}" == 255 ] && pwquality_9=1 || pwquality_9=0
+	[ "${rule_lower}" == 255 ] && pwquality_10=1 || pwquality_10=0
+	[ "${rule_digit}" == 255 ] && pwquality_11=1 || pwquality_11=0
 	[ "${rule_maxrepeat}" == 3 ] && pwquality_12=1 || pwquality_12=0
 	[ "${rule_username}" == 0 ] && pwquality_13=0 || pwquality_13=1
 	[ "${rule_diff_old}" == 7 ] && pwquality_14=1 || pwquality_14=0
