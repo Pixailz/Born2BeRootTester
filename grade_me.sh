@@ -166,6 +166,9 @@ function check_strong_password() {
 	rule_user_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
 	rule_user_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
 	rule_user_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
+	rule_root_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
+	rule_root_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
+	rule_root_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
 	rule_new_max=$(sed -nE "s|PASS_MAX_DAYS.*(30).*|\1|p" /etc/login.defs 2>/dev/null)
 	rule_new_min=$(sed -nE "s|PASS_MIN_DAYS.*(2).*|\1|p" /etc/login.defs 2>/dev/null)
 	rule_new_warn=$(sed -nE "s|PASS_WARN_AGE.*(7).*|\1|p" /etc/login.defs 2>/dev/null)
@@ -198,17 +201,20 @@ function check_strong_password() {
 	[ "${rule_user_max}" == 30 ] && pwquality_2=1 || pwquality_2=0
 	[ "${rule_user_min}" == 2 ] && pwquality_3=1 || pwquality_3=0
 	[ "${rule_user_warn}" == 7 ] && pwquality_4=1 || pwquality_4=0
-	[ "${rule_new_max}" == 30 ] && pwquality_5=1 || pwquality_5=0
-	[ "${rule_new_min}" == 2 ] && pwquality_6=1 || pwquality_6=0
-	[ "${rule_new_warn}" == 7 ] && pwquality_7=1 || pwquality_7=0
-	[ "${rule_min_char}" == 10 ] && pwquality_8=1 || pwquality_8=0
-	[ "${rule_upper}" == 255 ] && pwquality_9=1 || pwquality_9=0
-	[ "${rule_lower}" == 255 ] && pwquality_10=1 || pwquality_10=0
-	[ "${rule_digit}" == 255 ] && pwquality_11=1 || pwquality_11=0
-	[ "${rule_maxrepeat}" == 3 ] && pwquality_12=1 || pwquality_12=0
-	[ "${rule_username}" == 0 ] && pwquality_13=0 || pwquality_13=1
-	[ "${rule_diff_old}" == 7 ] && pwquality_14=1 || pwquality_14=0
-	[ "${rule_force_root}" == "enforce_for_root" ] && pwquality_15=1 || pwquality_15=0
+	[ "${rule_root_max}" == 30 ] && pwquality_5=1 || pwquality_5=0
+	[ "${rule_root_min}" == 2 ] && pwquality_6=1 || pwquality_6=0
+	[ "${rule_root_warn}" == 7 ] && pwquality_7=1 || pwquality_7=0
+	[ "${rule_new_max}" == 30 ] && pwquality_8=1 || pwquality_8=0
+	[ "${rule_new_min}" == 2 ] && pwquality_9=1 || pwquality_9=0
+	[ "${rule_new_warn}" == 7 ] && pwquality_10=1 || pwquality_10=0
+	[ "${rule_min_char}" == 10 ] && pwquality_11=1 || pwquality_11=0
+	[ "${rule_upper}" == 255 ] && pwquality_12=1 || pwquality_12=0
+	[ "${rule_lower}" == 255 ] && pwquality_13=1 || pwquality_13=0
+	[ "${rule_digit}" == 255 ] && pwquality_14=1 || pwquality_14=0
+	[ "${rule_maxrepeat}" == 3 ] && pwquality_15=1 || pwquality_15=0
+	[ "${rule_username}" == 0 ] && pwquality_16=0 || pwquality_16=1
+	[ "${rule_diff_old}" == 7 ] && pwquality_17=1 || pwquality_17=0
+	[ "${rule_force_root}" == "enforce_for_root" ] && pwquality_18=1 || pwquality_18=0
 }
 
 function check_strict_sudo() {
@@ -349,36 +355,45 @@ function report_strong_password() {
 		echo_deep "wrong current user day before warning"
 	fi
 	if [ "${pwquality_5}" == 0 ]; then
-		echo_deep "wrong new user password expiration"
+		echo_deep "wrong root password expiration"
 	fi
 	if [ "${pwquality_6}" == 0 ]; then
-		echo_deep "wrong new user minimum day with a password"
+		echo_deep "wrong root minimum day with a password"
 	fi
 	if [ "${pwquality_7}" == 0 ]; then
-		echo_deep "wrong new user day before warning"
+		echo_deep "wrong root day before warning"
 	fi
 	if [ "${pwquality_8}" == 0 ]; then
-		echo_deep "wrong minimum length for a password"
+		echo_deep "wrong new user password expiration"
 	fi
 	if [ "${pwquality_9}" == 0 ]; then
-		echo_deep "wrong minimum upper character for a password"
+		echo_deep "wrong new user minimum day with a password"
 	fi
 	if [ "${pwquality_10}" == 0 ]; then
-		echo_deep "wrong minimum lower character for a password"
+		echo_deep "wrong new user day before warning"
 	fi
 	if [ "${pwquality_11}" == 0 ]; then
-		echo_deep "wrong minimum digit character for a password"
+		echo_deep "wrong minimum length for a password"
 	fi
 	if [ "${pwquality_12}" == 0 ]; then
-		echo_deep "wrong max consecutive character in a password"
+		echo_deep "wrong minimum upper character for a password"
 	fi
 	if [ "${pwquality_13}" == 0 ]; then
-		echo_deep "password can't have the username in it"
+		echo_deep "wrong minimum lower character for a password"
 	fi
 	if [ "${pwquality_14}" == 0 ]; then
-		echo_deep "password can't have more than 7 character that is in the old one"
+		echo_deep "wrong minimum digit character for a password"
 	fi
 	if [ "${pwquality_15}" == 0 ]; then
+		echo_deep "wrong max consecutive character in a password"
+	fi
+	if [ "${pwquality_16}" == 0 ]; then
+		echo_deep "password can't have the username in it"
+	fi
+	if [ "${pwquality_17}" == 0 ]; then
+		echo_deep "password can't have more than 7 character that is in the old one"
+	fi
+	if [ "${pwquality_18}" == 0 ]; then
 		echo_deep "password policy must be applied to root"
 	fi
 }
@@ -463,7 +478,10 @@ function  report_check_part() {
 	[ "${pwquality_12}" == 1 ] && \
 	[ "${pwquality_13}" == 1 ] && \
 	[ "${pwquality_14}" == 1 ] && \
-	[ "${pwquality_15}" == 1 ] && pwquality_success=1
+	[ "${pwquality_15}" == 1 ] && \
+	[ "${pwquality_16}" == 1 ] && \
+	[ "${pwquality_17}" == 1 ] && \
+	[ "${pwquality_18}" == 1 ] && pwquality_success=1
 	[ "${sudo_1}" == 1 ] && \
 	[ "${sudo_2}" == 1 ] && \
 	[ "${sudo_3}" == 1 ] && \
@@ -610,22 +628,28 @@ function print_strong_password() {
 	[ "${pwquality_13}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_14}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_15}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_16}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_17}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
+	[ "${pwquality_18}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
 	[ "${pwquality_1}" == 1 ] || print_subpart "the 'libpam-pwquality' package is not installed"
 	[ "${pwquality_2}" == 1 ] || print_subpart "wrong current user password expiration"
 	[ "${pwquality_3}" == 1 ] || print_subpart "wrong current user minimum day with a password"
 	[ "${pwquality_4}" == 1 ] || print_subpart "wrong current user day before warning"
-	[ "${pwquality_5}" == 1 ] || print_subpart "wrong new user password expiration"
-	[ "${pwquality_6}" == 1 ] || print_subpart "wrong new user minimum day with a password"
-	[ "${pwquality_7}" == 1 ] || print_subpart "wrong new user day before warning"
-	[ "${pwquality_8}" == 1 ] || print_subpart "wrong minimum length for a password"
-	[ "${pwquality_9}" == 1 ] || print_subpart "wrong minimum upper character for a password"
-	[ "${pwquality_10}" == 1 ] || print_subpart "wrong minimum lower character for a password"
-	[ "${pwquality_11}" == 1 ] || print_subpart "wrong minimum digit character for a password"
-	[ "${pwquality_12}" == 1 ] || print_subpart "wrong max consecutive character in a password"
-	[ "${pwquality_13}" == 1 ] || print_subpart "password can't have the username in it"
-	[ "${pwquality_14}" == 1 ] || print_subpart "password can't have more than 7 character that is in the old one"
-	[ "${pwquality_15}" == 1 ] || print_subpart "password policy must be applied to root"
+	[ "${pwquality_5}" == 1 ] || print_subpart "wrong root password expiration"
+	[ "${pwquality_6}" == 1 ] || print_subpart "wrong root minimum day with a password"
+	[ "${pwquality_7}" == 1 ] || print_subpart "wrong root day before warning"
+	[ "${pwquality_8}" == 1 ] || print_subpart "wrong new user password expiration"
+	[ "${pwquality_9}" == 1 ] || print_subpart "wrong new user minimum day with a password"
+	[ "${pwquality_10}" == 1 ] || print_subpart "wrong new user day before warning"
+	[ "${pwquality_11}" == 1 ] || print_subpart "wrong minimum length for a password"
+	[ "${pwquality_12}" == 1 ] || print_subpart "wrong minimum upper character for a password"
+	[ "${pwquality_13}" == 1 ] || print_subpart "wrong minimum lower character for a password"
+	[ "${pwquality_14}" == 1 ] || print_subpart "wrong minimum digit character for a password"
+	[ "${pwquality_15}" == 1 ] || print_subpart "wrong max consecutive character in a password"
+	[ "${pwquality_16}" == 1 ] || print_subpart "password can't have the username in it"
+	[ "${pwquality_17}" == 1 ] || print_subpart "password can't have more than 7 character that is in the old one"
+	[ "${pwquality_18}" == 1 ] || print_subpart "password policy must be applied to root"
 	printf "\n"
 }
 
