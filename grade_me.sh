@@ -93,7 +93,7 @@ function check_have_cron() {
 	is_monitoring=$(echo "${is_monitoring}" | grep -E '.*monitoring.*')
 	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
 	[ ! -z "${is_monitoring}" ] && cron_2=1 || cron_2=0
-	[ -f "${is_monitoring/bash /}" ] && cron_3=1 || cron_3=0
+	[ -f "${is_monitoring/*sh /}" ] && cron_3=1 || cron_3=0
 }
 
 function check_crontab() {
