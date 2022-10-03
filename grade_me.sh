@@ -220,7 +220,9 @@ function check_strong_password() {
 
 function check_strict_sudo() {
 	passwd_tries=$(sudo sed -nE 's|^Default.*passwd_tries=(3).*|\1|p' /etc/sudoers 2>/dev/null)
+	passwd_tries_2=$(sudo sed -nE 's|^Default.*(passwd_tries=).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_message=$(sudo sed -nE 's|^Default.*badpass_message="(.+)".*|\1|p' /etc/sudoers 2>/dev/null)
+	passwd_message_2=$(sudo sed -nE 's|^Default.*(insults).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_input=$(sudo sed -nE 's|^Default.*(log_input).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_output=$(sudo sed -nE 's|^Default.*(log_output).*|\1|p' /etc/sudoers 2>/dev/null)
 	log_path="/var/log/sudo/sudo.log"
@@ -228,14 +230,27 @@ function check_strict_sudo() {
 	passwd_tty=$(sudo sed -nE 's|^Default.*(requiretty).*|\1|p' /etc/sudoers 2>/dev/null)
 	restricted_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 	passwd_secure_path=$(sudo sed -nE "s|^Default.*(secure_path=\"?.+\"?).*|\1|p" /etc/sudoers 2>/dev/null)
-	[ "${passwd_tries}" ] && sudo_1=1 || sudo_1=0
-	[ "${passwd_message}" ] && sudo_2=1 || sudo_2=0
+	if [ "${passwd_tries}" ]; then
+		sudo_1=1
+	elif [ ! "${passwd_tries_2}" ]; then
+		sudo_1=1
+	else
+		sudo_1=0
+	fi
+	if [ "${passwd_message}" ]; then
+		sudo_2=1
+	elif [ "${passwd_message_2}" ]; then
+		sudo_2=1
+	else
+		sudo_2=0
+	fi
 	[ "${passwd_input}" ] && sudo_3=1 || sudo_3=0
 	[ "${passwd_output}" ] && sudo_4=1 || sudo_4=0
 	[ "${passwd_log}" ] && sudo_5=1 || sudo_5=0
 	[ "${passwd_tty}" ] && sudo_6=1 || sudo_6=0
 	[ "${passwd_secure_path}" ] && sudo_7=1 || sudo_7=0
 }
+
 function check_username() {
 	username=$(cat /etc/passwd | grep -o ${LOGIN} | uniq)
 	have_sudo=$(id ${LOGIN} 2>/dev/null | grep -o sudo)
