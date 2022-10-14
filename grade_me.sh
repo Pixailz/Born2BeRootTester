@@ -164,8 +164,6 @@ function check_pam_and_sec() {
 }
 
 function check_strong_password() {
-	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null | \
-				   tail -n)
 	rule_user_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
 	rule_user_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
 	rule_user_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
@@ -202,7 +200,7 @@ function check_strong_password() {
 	else
 		rule_force_root=${is_in_common}
 	fi
-	[ "${is_installed}" == "pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
+	[ -f "/usr/lib/x86_64-linux-gnu/security/pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
 	[ "${rule_user_max}" == 30 ] && pwquality_2=1 || pwquality_2=0
 	[ "${rule_user_min}" == 2 ] && pwquality_3=1 || pwquality_3=0
 	[ "${rule_user_warn}" == 7 ] && pwquality_4=1 || pwquality_4=0
