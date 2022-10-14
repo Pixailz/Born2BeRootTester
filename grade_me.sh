@@ -164,7 +164,8 @@ function check_pam_and_sec() {
 }
 
 function check_strong_password() {
-	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null)
+	is_installed=$(grep -o "pam_pwquality.so" /etc/pam.d/common-password 2>/dev/null | \
+				   tail -n)
 	rule_user_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
 	rule_user_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
 	rule_user_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
