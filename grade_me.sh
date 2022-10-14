@@ -183,8 +183,8 @@ function check_strong_password() {
 	rule_digit=${?}
 	check_pam_and_sec "maxrepeat"
 	rule_maxrepeat=${?}
-	rule_username=$(sed -nE 's|(usercheck)|\1|p')
-	rule_username_2=$(sed -nE 's|(reject_username)|\1|p')
+	rule_username=$(sed -nE 's|(usercheck)|\1|p' /etc/pam.d/common-password)
+	rule_username_2=$(sed -nE 's|(reject_username)|\1|p' /etc/pam.d/common-password)
 	check_pam_and_sec "difok"
 	rule_diff_old=${?}
 	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
