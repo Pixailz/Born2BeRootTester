@@ -183,10 +183,8 @@ function check_strong_password() {
 	rule_digit=${?}
 	check_pam_and_sec "maxrepeat"
 	rule_maxrepeat=${?}
-	check_pam_and_sec "usercheck"
-	rule_username=${?}
-	check_pam_and_sec "reject_username"
-	rule_username_2=${?}
+	rule_username=$(sed -nE 's|(usercheck)|\1|p')
+	rule_username_2=$(sed -nE 's|(reject_username)|\1|p')
 	check_pam_and_sec "difok"
 	rule_diff_old=${?}
 	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | sed -nE "s|.*?(enforce_for_root).*|\1|p" 2>/dev/null)
@@ -215,12 +213,12 @@ function check_strong_password() {
 	[ "${rule_lower}" == 255 ] && pwquality_13=1 || pwquality_13=0
 	[ "${rule_digit}" == 255 ] && pwquality_14=1 || pwquality_14=0
 	[ "${rule_maxrepeat}" == 3 ] && pwquality_15=1 || pwquality_15=0
-	if [ "${rule_username}" == 0 ]; then
-		pwquality_16=0
-	elif [ "${rule_username_2}" == 0 ]; then
-		pwquality_16=0
-	else
+	if [ "${rule_username}" ]; then
 		pwquality_16=1
+	elif [ "${rule_username_2}" ]; then
+		pwquality_16=1
+	else
+		pwquality_16=0
 	fi
 	[ "${rule_diff_old}" == 7 ] && pwquality_17=1 || pwquality_17=0
 	[ "${rule_force_root}" == "enforce_for_root" ] && pwquality_18=1 || pwquality_18=0
