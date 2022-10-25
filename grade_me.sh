@@ -147,7 +147,7 @@ function check_hostname() {
 
 function check_pam_and_sec() {
 	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | \
-					grep "pam_pwquality" | \
+					grep "pam_pwquality\|pam_cracklib" | \
 					sed -nE "s|.*?${1}\s*?=\s*?([0-9-]*).*|\1|p" 2>/dev/null | \
 					tail -n1)
 	if [ -z ${is_in_common} ]; then
@@ -198,7 +198,12 @@ function check_strong_password() {
 	else
 		rule_force_root=${is_in_common}
 	fi
-	[ -f "/usr/lib/x86_64-linux-gnu/security/pam_pwquality.so" ] && pwquality_1=1 || pwquality_1=0
+	if [ -f "/usr/lib/x86_64-linux-gnu/security/pam_pwquality.so" ] || \
+	   [ -f "/usr/lib/x86_64-linux-gnu/security/pam_cracklib.so" ]; then
+		pwquality_1=1
+	else
+		pwquality_1=0
+	fi
 	[ "${rule_user_max}" == 30 ] && pwquality_2=1 || pwquality_2=0
 	[ "${rule_user_min}" == 2 ] && pwquality_3=1 || pwquality_3=0
 	[ "${rule_user_warn}" == 7 ] && pwquality_4=1 || pwquality_4=0
