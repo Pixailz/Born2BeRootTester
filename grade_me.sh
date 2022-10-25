@@ -72,12 +72,12 @@ function usage() {
 #> Crontab check
 
 function check_cron_schedule() {
-	crontab=$(sudo crontab -l 2>/dev/null | sed -nE "s|(.*)${MONITORING_PATH}$|\1|p")
-	minute=$(echo "${crontab}" | cut -d' ' -f1)
-	hour=$(echo "${crontab}" | cut -d' ' -f2)
-	day_m=$(echo "${crontab}" | cut -d' ' -f3)
-	month=$(echo "${crontab}" | cut -d' ' -f4)
-	day_w=$(echo "${crontab}" | cut -d' ' -f5)
+	crontab_line=$(sudo crontab -l 2>/dev/null | grep "${MONITORING_PATH}")
+	minute=$(echo "${crontab_line}" | cut -d' ' -f1)
+	hour=$(echo "${crontab_line}" | cut -d' ' -f2)
+	day_m=$(echo "${crontab_line}" | cut -d' ' -f3)
+	month=$(echo "${crontab_line}" | cut -d' ' -f4)
+	day_w=$(echo "${crontab_line}" | cut -d' ' -f5)
 	cron_4=1
 	[ "${minute}" != "*/10" ] && cron_4=0
 	[ "${hour}" != "*" ] && cron_4=0
