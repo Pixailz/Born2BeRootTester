@@ -90,7 +90,7 @@ function check_have_cron() {
 	# /var/spool/cron/crontabs/${LOGIN}
 	crontab=$(sudo crontab -l 2>/dev/null | grep -v '^#')
 	is_monitoring=$(echo "${crontab}" | cut -d' ' -f6-)
-	is_monitoring=$(echo "${is_monitoring}" | grep -E '.*monitoring.*')
+	is_monitoring=$(echo "${is_monitoring}" | grep -o "${MONITORING_PATH}")
 	[ ! -z "${crontab}" ] && cron_1=1 || cron_1=0
 	[ ! -z "${is_monitoring}" ] && cron_2=1 || cron_2=0
 	[ -f "${is_monitoring/*sh /}" ] && cron_3=1 || cron_3=0
