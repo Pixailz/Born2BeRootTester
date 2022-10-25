@@ -746,8 +746,8 @@ function print_c () {
 	print_subpart_title "COALITION"
 	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
-	[ "${coa_1}" == 1 ] || print_subpart "You have choosen the wrong coalitions ..."
-	[ "${coa_1}" == 1 ] && print_subpart "You have choosen the BEST coalitions ${HEART}"
+	[ "${coa_1}" == 1 ] || print_subpart "You have choosen the wrong coalition ..."
+	[ "${coa_1}" == 1 ] && print_subpart "You have choosen the BEST coalition ${HEART}"
 	printf "\n"
 }
 
