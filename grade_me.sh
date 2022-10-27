@@ -166,7 +166,8 @@ function check_pam_and_sec() {
 function check_strong_password_user()
 {
 	rule_username_usercheck_1=$(grep -v "^#" /etc/pam.d/common-password | sed -nE 's|(usercheck\s*?=\s*?0)|\1|p')
-	rule_username_usercheck_2=$(grep -v "^#" /etc/security/pwquality.conf | sed -nE 's|(usercheck\s*?=\s*?0)|\1|p')
+	rule_username_usercheck_2=$(grep -v "^#" /etc/security/pwquality.conf 2>/dev/null \ |
+								sed -nE 's|(usercheck\s*?=\s*?0)|\1|p' 2>/dev/null)
 
 	rule_username_rejectuser_1=$(grep -v "^#" /etc/pam.d/common-password | grep -o 'reject_username')
 
