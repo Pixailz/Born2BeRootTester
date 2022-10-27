@@ -38,26 +38,31 @@ HEART="${blink}\xe2\x99\xa5${reset}"
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Utils
 
-function check_root() {
+function	check_root()
+{
 	if [ ${EUID} != 0 ]; then
 		p_error "Run as root."
 	fi
 }
 
-function p_error() {
+function	p_error()
+{
 	printf "[${PROMPT_OFFSET}${red}ERROR${PROMPT_OFFSET}${reset}] $*\n"
 	exit
 }
 
-function p_info() {
+function	p_info()
+{
 	printf "[${PROMPT_OFFSET}${blue}INFO${PROMPT_OFFSET}${reset}] $*\n"
 }
 
-function p_warn() {
+function p_warn()
+{
 	printf "[${PROMPT_OFFSET}${orange}WARN${PROMPT_OFFSET}${reset}] $*\n"
 }
 
-function usage() {
+function	usage()
+{
 	[ ! -z "${1}" ] && p_warn "$1"
 	printf "Usage : ${0} -u LOGIN [-m MONITORING_PATH]\n"
 	printf "\t-h : show this help\n"
@@ -71,7 +76,8 @@ function usage() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Crontab check
 
-function check_cron_schedule() {
+function	check_cron_schedule()
+{
 	crontab_line=$(sudo crontab -l 2>/dev/null | grep "${MONITORING_PATH}")
 	minute=$(echo "${crontab_line}" | cut -d' ' -f1)
 	hour=$(echo "${crontab_line}" | cut -d' ' -f2)
@@ -86,7 +92,8 @@ function check_cron_schedule() {
 	[ "${day_w}" != "*" ] && cron_4=0
 }
 
-function check_have_cron() {
+function	check_have_cron()
+{
 	# /var/spool/cron/crontabs/${LOGIN}
 	crontab=$(sudo crontab -l 2>/dev/null | grep -v '^#')
 	is_monitoring=$(echo "${crontab}" | cut -d' ' -f6-)
@@ -96,7 +103,8 @@ function check_have_cron() {
 	[ -f "${is_monitoring/*sh /}" ] && cron_3=1 || cron_3=0
 }
 
-function check_crontab() {
+function	check_crontab()
+{
 	check_have_cron
 	check_cron_schedule
 }
@@ -106,14 +114,16 @@ function check_crontab() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> basic check
 
-function check_lvm() {
+function	check_lvm()
+{
 	number_of_lvm=$(lsblk | grep "lvm" | wc -l)
 	is_crypted=$(lsblk | grep "crypt" | wc -l)
 	[ ${number_of_lvm} -ge 2 ] && lvm_1=1 || lvm_1=0
 	[ ${is_crypted} -ge 1 ] && lvm_2=1 || lvm_2=0
 }
 
-function check_ssh() {
+function	check_ssh()
+{
 	is_installed=$(sudo systemctl list-units 2>/dev/null | grep -o ssh)
 	ssh_port=$(sed -nE 's|^Port\s*([0-9]*).*|\1|p' /etc/ssh/sshd_config 2>/dev/null)
 	prohibit_root=$(sed -nE 's|^PermitRootLogin\s*(no).*|\1|p' /etc/ssh/sshd_config 2>/dev/null)
@@ -122,7 +132,8 @@ function check_ssh() {
 	[ ${prohibit_root} ] && ssh_3=1 || ssh_3=0
 }
 
-function check_ufw() {
+function	check_ufw()
+{
 	is_installed=$(sudo which ufw 2>/dev/null)
 	is_enabled=$(sudo ufw status  2>/dev/null | sed -nE 's|Status: (active)|\1|p')
 	rule_1=$(sudo ufw status 2>/dev/null | sed -znE 's|.*4242.*(ALLOW).*|\1|p')
@@ -133,7 +144,8 @@ function check_ufw() {
 	[ "${rule_2}" == "udp" ] && ufw_4=0 || ufw_4=1
 }
 
-function check_hostname() {
+function	check_hostname()
+{
 	hostname="${LOGIN}42"
 	hosts=$(sed -nE 's|127.0.0.1\t([a-z0-9\-]{1,63})|\1|p' /etc/hosts)
 	[ "${hostname}" == $(hostname) ] && hostname_1=1 || hostname_1=0
@@ -145,7 +157,8 @@ function check_hostname() {
 	fi
 }
 
-function check_pam_and_sec() {
+function	check_pam_and_sec()
+{
 	is_in_common=$(grep -v '^#' /etc/pam.d/common-password 2>/dev/null | \
 					grep "pam_pwquality\|pam_cracklib" | \
 					sed -nE "s|.*?${1}\s*?=\s*?([0-9-]*).*|\1|p" 2>/dev/null | \
@@ -163,7 +176,7 @@ function check_pam_and_sec() {
 	fi
 }
 
-function check_strong_password_user()
+function	check_strong_password_user()
 {
 	rule_username_usercheck_1=$(grep -v "^#" /etc/pam.d/common-password | sed -nE 's|(usercheck\s*?=\s*?0)|\1|p')
 	rule_username_usercheck_2=$(grep -v "^#" /etc/security/pwquality.conf 2>/dev/null \ |
@@ -174,14 +187,15 @@ function check_strong_password_user()
 	if [ "${rule_username_usercheck_1}" ] || [ "${rule_username_usercheck_2}" ]; then
 		pwquality_16=0
 		if [ "${rule_username_rejectuser_1}" ]; then
-			pwquality_16=1
+			pwquali2>/dev/nullty_16=1
 		fi
 	else
 		pwquality_16=1
 	fi
 }
 
-function check_strong_password() {
+function	check_strong_password()
+{
 	rule_user_max=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f5)
 	rule_user_min=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f4)
 	rule_user_warn=$(sudo grep "${LOGIN}" /etc/shadow | cut -d":" -f6)
@@ -239,7 +253,8 @@ function check_strong_password() {
 	[ "${rule_force_root}" == "enforce_for_root" ] && pwquality_18=1 || pwquality_18=0
 }
 
-function check_strict_sudo() {
+function	check_strict_sudo()
+{
 	passwd_tries=$(sudo sed -nE 's|^Default.*passwd_tries=(3).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_tries_2=$(sudo sed -nE 's|^Default.*(passwd_tries=).*|\1|p' /etc/sudoers 2>/dev/null)
 	passwd_message=$(sudo sed -nE 's|^Default.*badpass_message="(.+)".*|\1|p' /etc/sudoers 2>/dev/null)
@@ -272,7 +287,8 @@ function check_strict_sudo() {
 	[ "${passwd_secure_path}" ] && sudo_7=1 || sudo_7=0
 }
 
-function check_username() {
+function	check_username()
+{
 	username=$(cat /etc/passwd | grep -o ${LOGIN} | uniq)
 	have_sudo=$(id ${LOGIN} 2>/dev/null | grep -o sudo)
 	have_user42=$(id ${LOGIN} 2>/dev/null | grep -o user42)
@@ -281,13 +297,15 @@ function check_username() {
 	[ "${have_user42}" ] && username_3=1 || username_3=0
 }
 
-function check_c() {
+function	check_c()
+{
 	s=$(./.s)
 	r=$(echo ${s} | grep -o "${LOGIN}")
 	[ ! -z "${r}" ] && coa_1=1 || coa_1=0
 }
 
-function check_mandatory() {
+function	check_mandatory()
+{
 	check_c
 	check_lvm
 	check_ssh
@@ -303,7 +321,8 @@ function check_mandatory() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> make the report according to result
 
-function echo_deep_section() {
+function	echo_deep_section()
+{
 	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
 	center_splited=$(( ${center_off} / 2 ))
@@ -320,15 +339,18 @@ function echo_deep_section() {
 }
 
 
-function echo_deep_part() {
+function	echo_deep_part()
+{
 	printf "${green}${1}${reset}:\n" >> deepthought
 }
 
-function echo_deep() {
+function	echo_deep()
+{
 	printf "\t${blink}${orange}WARNING${reset}: ${1}\n" >> deepthought
 }
 
-function report_lvm_crypted() {
+function	report_lvm_crypted()
+{
 	echo_deep_part "LVM_CRYPTED"
 	if [ "${lvm_1}" == 0 ]; then
 		echo_deep "your virtual machine don't have at least 2 LVM partition"
@@ -338,7 +360,8 @@ function report_lvm_crypted() {
 	fi
 }
 
-function report_ssh() {
+function	report_ssh()
+{
 	echo_deep_part "SSH_SERVER"
 	if [ "${ssh_1}" == 0 ]; then
 		echo_deep "openssh-server is not installed"
@@ -351,7 +374,8 @@ function report_ssh() {
 	fi
 }
 
-function report_ufw() {
+function	report_ufw()
+{
 	echo_deep_part "FIREWALL"
 	if [ "${ufw_1}" == 0 ]; then
 		echo_deep "ufw is not installed"
@@ -367,7 +391,8 @@ function report_ufw() {
 	fi
 }
 
-function report_hostname() {
+function	report_hostname()
+{
 	echo_deep_part "HOSTNAME"
 	if [ "${hostname_1}" == 0 ]; then
 		echo_deep "the command hostname ($(hostname)) don't return ${LOGIN}42"
@@ -377,7 +402,8 @@ function report_hostname() {
 	fi
 }
 
-function report_strong_password() {
+function	report_strong_password()
+{
 	echo_deep_part "STRONG_PASSWORD"
 	if [ "${pwquality_1}" == 0 ]; then
 		echo_deep "the 'libpam-pwquality' package is not installed"
@@ -435,7 +461,8 @@ function report_strong_password() {
 	fi
 }
 
-function report_strict_sudo() {
+function	report_strict_sudo()
+{
 	echo_deep_part "STRICT_SUDO"
 	if [ "${sudo_1}" == 0 ]; then
 		echo_deep "wrong sudo max tries"
@@ -460,7 +487,8 @@ function report_strict_sudo() {
 	fi
 }
 
-function report_username() {
+function	report_username()
+{
 	echo_deep_part "USER/GROUPS"
 	if [ "${username_1}" == 0 ]; then
 		echo_deep "your user don't exist or don't have the correct name"
@@ -473,7 +501,8 @@ function report_username() {
 	fi
 }
 
-function report_crontab() {
+function	report_crontab()
+{
 	echo_deep_part "CRON_TAB"
 	if [ "${cron_1}" == 0 ]; then
 		echo_deep "your crontab doesn't have any jobs"
@@ -489,7 +518,8 @@ function report_crontab() {
 	fi
 }
 
-function  report_check_part() {
+function	report_check_part()
+{
 	[ "${lvm_1}" == 1 ] && \
 	[ "${lvm_2}" == 1 ] && lvm_success=1
 	[ "${ssh_1}" == 1 ] && \
@@ -535,7 +565,8 @@ function  report_check_part() {
 	[ "${cron_4}" == 1 ] && cron_success=1
 }
 
-function report_check_section() {
+function	report_check_section()
+{
 	[ "${lvm_success}" == "1" ] && \
 	[ "${ssh_success}" == "1" ] && \
 	[ "${ufw_success}" == "1" ] && \
@@ -546,7 +577,8 @@ function report_check_section() {
 	[ "${cron_success}" == "1"  ] && monitoring_success=1
 }
 
-function report_c() {
+function	report_c()
+{
 	[ "${coa_1}" == 1 ] || echo_deep_section "COALITIONS :)"
 	[ "${coa_1}" == 1 ] || echo_deep_part "COA"
 	[ "${coa_1}" == 1 ] || echo_deep "You have choosen the wrong coalitions ..."
@@ -555,7 +587,8 @@ function report_c() {
 	[ "${coa_1}" == 1 ] && echo_deep "You have choosen the BEST coalitions ${HEART}"
 }
 
-function make_report() {
+function	make_report()
+{
 	tabs 4
 	[ -f deepthought ] && rm deepthought
 	report_check_part
@@ -578,15 +611,18 @@ function make_report() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> print result
 
-function print_subpart() {
+function	print_subpart()
+{
 	printf "[${PROMPT_OFFSET}${red}ERRO${PROMPT_OFFSET}${reset}] $*\n"
 }
 
-function print_subpart_title() {
+function	print_subpart_title()
+{
 	printf "${green}$*${reset}:\t"
 }
 
-function print_title() {
+function	print_title()
+{
 	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
 	center_splited=$(( ${center_off} / 2 ))
@@ -602,7 +638,8 @@ function print_title() {
 	printf "${LL}${vertical_offset}${LR}${reset}\n\n"
 }
 
-function print_lvm_crypted() {
+function	print_lvm_crypted()
+{
 	print_subpart_title "LVM_CRYPTED"
 	[ ${lvm_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${lvm_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -612,7 +649,8 @@ function print_lvm_crypted() {
 	printf "\n"
 }
 
-function print_ssh() {
+function	print_ssh()
+{
 	print_subpart_title "SSH_SERVER"
 	[ ${ssh_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ssh_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -624,7 +662,8 @@ function print_ssh() {
 	printf "\n"
 }
 
-function print_ufw() {
+function	print_ufw()
+{
 	print_subpart_title "FIREWALL"
 	[ ${ufw_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${ufw_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -638,7 +677,8 @@ function print_ufw() {
 	printf "\n"
 }
 
-function print_hostname() {
+function	print_hostname()
+{
 	print_subpart_title "HOSTNAME"
 	[ ${hostname_1} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ ${hostname_2} == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -648,7 +688,8 @@ function print_hostname() {
 	printf "\n"
 }
 
-function print_strong_password() {
+function	print_strong_password()
+{
 	print_subpart_title "STRONG PASSWORD"
 	[ "${pwquality_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${pwquality_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -690,7 +731,8 @@ function print_strong_password() {
 	printf "\n"
 }
 
-function print_strict_sudo() {
+function	print_strict_sudo()
+{
 	print_subpart_title "STRICT SUDO"
 	[ "${sudo_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${sudo_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -710,7 +752,8 @@ function print_strict_sudo() {
 	printf "\n"
 }
 
-function print_username() {
+function	print_username()
+{
 
 	print_subpart_title "USERNAME / GROUPS"
 	[ "${username_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -723,7 +766,8 @@ function print_username() {
 	printf "\n"
 }
 
-function print_mandatory() {
+function	print_mandatory()
+{
 	if [ -z "${MONITORING_PATH}" ]; then
 		p_warn "Monitoring path not specified"
 		printf "\n"
@@ -738,7 +782,8 @@ function print_mandatory() {
 	print_c
 }
 
-function print_cron() {
+function	print_cron()
+{
 	print_subpart_title "CRONTAB SETTINGS"
 	[ "${cron_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	[ "${cron_2}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
@@ -752,7 +797,8 @@ function print_cron() {
 	printf "\n"
 }
 
-function print_c () {
+function	print_c()
+{
 	print_subpart_title "COALITION"
 	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
 	printf "\n"
@@ -762,11 +808,13 @@ function print_c () {
 }
 
 
-function print_crontab() {
+function	print_crontab()
+{
 	print_cron
 }
 
-function print_result() {
+function	print_result()
+{
 	print_mandatory
 	[ -z ${MONITORING_PATH} ] || print_crontab
 }
@@ -774,7 +822,8 @@ function print_result() {
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> Main
 
-function basic_config() {
+function	basic_config()
+{
 	if [ -z ${LOGIN} ]; then
 		usage "Login (-u) is require"
 	else
@@ -788,12 +837,14 @@ function basic_config() {
 	fi
 }
 
-function check() {
+function	check()
+{
 	check_mandatory
 	[ -z ${MONITORING_PATH} ] || check_crontab
 }
 
-function main() {
+function	main()
+{
 	tabs 20
 	check_root
 	clear
@@ -835,46 +886,3 @@ done
 
 main
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-
-exit
-
-#check_monitoring_sh
-# how to support float, more elegant way on opinions is the dc one
-# troncate with 2 digit after comma
-#n1=1.33333
-#echo "2k ${n1} 1 / p" | dc
-#>1.33
-# addition
-#echo "11.5 + p" | dc
-# ...
-#echo "11.5 - p" | dc
-# https://www.geeksforgeeks.org/dc-command-in-linux-with-examples/
-export THRESHOLD=0.5E
-
-checked=0
-n1=11
-n2=10.5
-
-n1_unit=$(echo ${n1%.*})
-n1_deci=$(echo ${n1#*.})
-n2_unit=$(echo ${n2%.*})
-n2_deci=$(echo ${n2#*.})
-
-if [ ${n1_unit} -gt ${n2_unit} ]; then
-	echo "n1 is greater than n2"
-elif [ ${n1_unit} -lt ${n2_unit} ]; then
-	echo "n2 is greater than n1"
-else
-	if [ ${n1_deci} -gt ${n2_deci} ]; then
-		if [ $() ] ; then
-			echo
-		else
-			echo
-		fi
-		echo "n1 is greater than n2"
-	elif [ ${n1_deci} -lt ${n2_deci} ]; then
-		echo "n2 is greater than n1"
-	else
-		echo "n2 is equal to n1"
-	fi
-fi
