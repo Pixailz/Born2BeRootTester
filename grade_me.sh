@@ -66,8 +66,8 @@ function	usage()
 	[ ! -z "${1}" ] && p_warn "$1"
 	printf "Usage : ${0} -u LOGIN [-m MONITORING_PATH]\n"
 	printf "\t-h : show this help\n"
-	printf "\t-u : specify the user login of the students\n"
-	printf "\t-m : specify the monitoring \n"
+	printf "\t-u : the login of the student\n"
+	printf "\t-m : the path of the monitoring \n"
 	exit
 }
 
