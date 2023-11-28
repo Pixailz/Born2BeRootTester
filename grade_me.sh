@@ -579,9 +579,6 @@ function	report_check_section()
 
 function	report_c()
 {
-	[ "${coa_1}" == 1 ] || echo_deep_section "COALITIONS :)"
-	[ "${coa_1}" == 1 ] || echo_deep_part "COA"
-	[ "${coa_1}" == 1 ] || echo_deep "You have choosen the wrong coalitions ..."
 	[ "${coa_1}" == 1 ] && echo_deep_section "COALITIONS :)"
 	[ "${coa_1}" == 1 ] && echo_deep_part "COA"
 	[ "${coa_1}" == 1 ] && echo_deep "You have choosen the BEST coalitions ${HEART}"
@@ -799,12 +796,9 @@ function	print_cron()
 
 function	print_c()
 {
-	print_subpart_title "COALITION"
-	[ "${coa_1}" == 1 ] && printf "${SUCCESS}" || printf "${FAILED}"
-	printf "\n"
-	[ "${coa_1}" == 1 ] || print_subpart "You have choosen the wrong coalition ..."
-	[ "${coa_1}" == 1 ] && print_subpart "You have choosen the BEST coalition ${HEART}"
-	printf "\n"
+	[ "${coa_1}" == 1 ] && print_subpart_title "COALITION"
+	[ "${coa_1}" == 1 ] && printf "${SUCCESS}\n"
+	[ "${coa_1}" == 1 ] && print_subpart "You have choosen the BEST coalition ${HEART}\n"
 }
 
 
@@ -828,12 +822,6 @@ function	basic_config()
 		usage "Login (-u) is require"
 	else
 		print_title "Welcome ${LOGIN}."
-	fi
-	if [ -z $(which bunzip2) ]; then
-		p_warn "bzip2 not installed. installing it now"
-		printf "\n"
-		sudo apt install -y bzip2
-		printf "\n"
 	fi
 }
 
